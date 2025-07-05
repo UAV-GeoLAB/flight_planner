@@ -1,12 +1,5 @@
 [
     {
-        "name": "DMC II 140",
-        "focal_length": 0.092,
-        "sensor_size": 7.2e-06,
-        "pixels_along_track": 11200,
-        "pixels_across_track": 12096
-    },
-    {
         "name": "DMC II 230",
         "focal_length": 0.092,
         "sensor_size": 5.6e-06,

@@ -56,8 +56,6 @@ from .functions import (
     save_error
 )
 
-# Load .ui file so that PyQt can populate plugin
-# with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'flight_planner_dialog_base.ui'))
 
@@ -66,11 +64,10 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
         super(FlightPlannerDialog, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS.
         self.setupUi(self)
-        
+
         self.tabBlock = True
-        self.tabCorridor = False
+        self.tabCorridor = False # sprawdzić czy nie można ograniczyć tego do jednej zmiennej tabBlock
         self.mMapLayerComboBoxAoI.setLayer(None)
         self.mMapLayerComboBoxCorridor.setLayer(None)
         self.mMapLayerComboBoxDTM.setLayer(None)
@@ -82,9 +79,8 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             "\nThe heights are also used to calculate average "
             "terrain height, but only in 'One altitude for entire"
             " flight' mode. Read more about it in the Guide.")
-        self.mGroupBox.setToolTipDuration(20000)
+        self.mGroupBox.setToolTipDuration(10000)
 
-        # Set up filters for ComboBoxes
         self.mMapLayerComboBoxProjectionCentres.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.mFieldComboBoxAltControl.setFilters(QgsFieldProxyModel.Numeric)
         self.mFieldComboBoxOmega.setFilters(QgsFieldProxyModel.Numeric)
@@ -98,34 +94,53 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             "Separate Altitude ASL For Each Strip",
             "Terrain Following"])
 
-        # Set up ComboBox of camera
         self.cameras_file = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), 'cameras.json')
+        self.cameras = []
         with open(self.cameras_file, 'r', encoding='utf-8') as file:
-            self.cameras = [Camera(**camera) for camera in sorted(json.load(file), key=lambda x : x['name'])]
-            self.comboBoxCamera.addItems([camera.name for camera in self.cameras])
-        if self.comboBoxCamera.count() > 0:
-            self.comboBoxCamera.setItemText(0, 'Select camera or set parameters')
+            data = file.read().strip()
+            if data:
+                try:
+                    cameras_data = json.loads(data)
+                    self.cameras = [Camera(**camera) for camera in sorted(cameras_data, key=lambda x: x['name'])]
+                except Exception as e:
+                    save_error()
+
+        self.comboBoxCamera.addItems([camera.name for camera in self.cameras])
+        self.comboBoxCamera.addItem("Your camera")
+        if self.cameras:
+            self.camera = self.cameras[0]
+            self.comboBoxCamera.setCurrentIndex(0)
+            self.on_comboBoxCamera_activated(0)
         else:
-            self.comboBoxCamera.addItem('No cameras listed')
-            self.comboBoxCamera.setCurrentText('No cameras listed')
+            self.camera = Camera(name='', focal_length=0, sensor_size=0,
+                                pixels_along_track=0, pixels_across_track=0)
 
-        self.camera = Camera(name='',
-                            focal_length=self.doubleSpinBoxFocalLength.value(),
-                            sensor_size=self.doubleSpinBoxSensorSize.value(),
-                            pixels_along_track=self.spinBoxPixelsAlongTrack.value(),
-                            pixels_across_track=self.spinBoxPixelsAcrossTrack.value())
-
+        self.pushButtonDeleteCamera.setEnabled(
+            self.comboBoxCamera.currentText() != "Your camera")
+        self.pushButtonSaveCamera.setEnabled(
+            self.comboBoxCamera.currentText() == "Your camera")
         self.control_run_counter = 1
         self.design_run_counter = 1
 
+    def workerTimeout(self, worker, worker_type):
+        """Handle worker timeout."""
+        QMessageBox.critical(self, "Timeout Error", 
+                        f"The {worker_type} operation took too long (more than 20 seconds) and was stopped.")
+        
+        self.pushButtonRunControl.setEnabled(True)
+        self.pushButtonRunDesign.setEnabled(True)
+        
+        if hasattr(worker, 'isRunning') and worker.isRunning():
+            worker.kill()
+
     def startWorker_control(self, **params):
         """Start worker for control module of plugin."""
-        # Create a new worker instance
         worker = Worker(**params)
 
+        worker.timeout.connect(lambda: self.workerTimeout(worker, "control"))
+        
         self.pushButtonStopControl.clicked.connect(worker.kill)
-        # Start the worker in a new thread
         thread = QThread(self)
         worker.moveToThread(thread)
         worker.finished.connect(self.workerFinished)
@@ -135,6 +150,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         worker.enabled.connect(self.pushButtonRunDesign.setEnabled)
         thread.started.connect(worker.run_control)
         thread.start()
+        
         self.thread = thread
         self.worker = worker
 
@@ -142,8 +158,10 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         """Start a worker for update altitude of flight in 'altitude for
         each strip' or 'terraing following' mode."""
         worker = Worker(**params)
-        # Create a new worker instance
-        # Start the worker in a new thread
+
+        worker_type = "altitude" if "altitude_AGL" in params else "terrain"
+        worker.timeout.connect(lambda: self.workerTimeout(worker, worker_type))
+
         thread = QThread(self)
         worker.moveToThread(thread)
         worker.finished.connect(self.workerFinished)
@@ -162,13 +180,14 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.worker = worker
 
     def workerFinished(self, result, group_name):
-        # clean up the worker and thread
-        self.worker.deleteLater()
-        self.thread.quit()
-        self.thread.wait()
-        self.thread.deleteLater()
+        if hasattr(self, 'worker'):
+            self.worker.deleteLater()
+        if hasattr(self, 'thread'):
+            self.thread.quit()
+            self.thread.wait()
+            self.thread.deleteLater()
+        
         if result is not None:
-            # report the result
             if group_name == 'flight_design':
                 add_layers_to_canvas(result, group_name, self.design_run_counter)
                 self.design_run_counter += 1
@@ -176,14 +195,12 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
                 add_layers_to_canvas(result, group_name, self.control_run_counter)
                 self.control_run_counter += 1
         else:
-            # notify the user that something went wrong
             print('Something went wrong!')
 
     def workerError(self, e, exception_string):
         print(f'Worker thread raised an exception: {exception_string}')
         save_error()
         QMessageBox.about(self, 'Error', 'See error log file in plugin folder')
-
 
     def check_set_gsd(self):
         gsd = (self.doubleSpinBoxAltAGL.value()*100) \
@@ -210,34 +227,44 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.doubleSpinBoxAltAGL.setSpecialValueText("")
             self.doubleSpinBoxAltAGL.setValue(w)
 
-    def on_pushButtonStopControl_clicked(self):
-        pass
-
-    def on_progressBar_valueChanged(self):
-        pass
-
-    def on_progressBarControl_valueChanged(self):
-        pass
-
-    def on_comboBoxCamera_highlighted(self):
-        camera_names = [camera.name for camera in self.cameras]
-        items_list = [self.comboBoxCamera.itemText(i) for i in range(self.comboBoxCamera.count())]
-        if ("Select camera or set parameters" in items_list 
-            or "No cameras listed" in items_list) and camera_names:
-            self.comboBoxCamera.clear()
-            self.comboBoxCamera.addItems(camera_names)
-        elif ("Select camera or set parameters" in items_list) and not camera_names:
-            self.comboBoxCamera.clear()
-            self.comboBoxCamera.addItem("No cameras listed")
+    # def on_comboBoxCamera_highlighted(self):
+    #     camera_names = [camera.name for camera in self.cameras]
+    #     items_list = [self.comboBoxCamera.itemText(i) for i in range(self.comboBoxCamera.count())]
+    #     if ("Select camera or set parameters" in items_list 
+    #         or "No cameras listed" in items_list) and camera_names:
+    #         self.comboBoxCamera.clear()
+    #         self.comboBoxCamera.addItems(camera_names)
+    #     elif ("Select camera or set parameters" in items_list) and not camera_names:
+    #         self.comboBoxCamera.clear()
+    #         self.comboBoxCamera.addItem("No cameras listed")
 
     def on_comboBoxCamera_activated(self, i):
-        camera_names = [camera.name for camera in self.cameras]
-        if isinstance(i, int) and self.comboBoxCamera.currentText() in camera_names:
-            self.doubleSpinBoxFocalLength.setValue(self.cameras[i].focal_length * 1_000)
-            self.doubleSpinBoxSensorSize.setValue(self.cameras[i].sensor_size * 1_000_000)
-            self.spinBoxPixelsAlongTrack.setValue(self.cameras[i].pixels_along_track)
-            self.spinBoxPixelsAcrossTrack.setValue(self.cameras[i].pixels_across_track)
-            self.camera.name = self.comboBoxCamera.currentText()
+        if not self.cameras and self.comboBoxCamera.currentText() != "Your camera":
+            return
+        selected = self.comboBoxCamera.currentText()
+        if selected == "Your camera":
+            self.doubleSpinBoxFocalLength.setEnabled(True)
+            self.doubleSpinBoxSensorSize.setEnabled(True)
+            self.spinBoxPixelsAlongTrack.setEnabled(True)
+            self.spinBoxPixelsAcrossTrack.setEnabled(True)
+            self.camera.name = "Your camera"
+        else:
+            camera = next((c for c in self.cameras if c.name == selected), None)
+            if camera:
+                self.doubleSpinBoxFocalLength.setValue(camera.focal_length * 1000)
+                self.doubleSpinBoxSensorSize.setValue(camera.sensor_size * 1_000_000)
+                self.spinBoxPixelsAlongTrack.setValue(camera.pixels_along_track)
+                self.spinBoxPixelsAcrossTrack.setValue(camera.pixels_across_track)
+                self.camera = camera
+
+            self.doubleSpinBoxFocalLength.setEnabled(False)
+            self.doubleSpinBoxSensorSize.setEnabled(False)
+            self.spinBoxPixelsAlongTrack.setEnabled(False)
+            self.spinBoxPixelsAcrossTrack.setEnabled(False)
+        self.pushButtonDeleteCamera.setEnabled(
+            self.comboBoxCamera.currentText() != "Your camera")
+        self.pushButtonSaveCamera.setEnabled(
+            self.comboBoxCamera.currentText() == "Your camera")
 
     def on_comboBoxAltitudeType_activated(self, text):
         if isinstance(text, str):
@@ -296,33 +323,6 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
     def on_spinBoxPixelsAcrossTrack_valueChanged(self):
         self.camera.pixels_across_track = self.spinBoxPixelsAcrossTrack.value()
 
-    def on_doubleSpinBoxMaxHeight_valueChanged(self):
-        pass
-
-    def on_doubleSpinBoxMinHeight_valueChanged(self):
-        pass
-
-    def on_doubleSpinBoxOverlap_valueChanged(self):
-        pass
-
-    def on_doubleSpinBoxSidelap_valueChanged(self):
-        pass
-
-    def on_doubleSpinBoxBuffer_valueChanged(self):
-        pass
-
-    def on_doubleSpinBoxIterationThreshold_valueChanged(self):
-        pass
-
-    def on_checkBoxOverlapImages_stateChanged(self):
-        pass
-
-    def on_checkBoxFootprint_stateChanged(self):
-        pass
-
-    def on_checkBoxGSDmap_stateChanged(self):
-        pass
-
     def on_checkBoxIncreaseOverlap_stateChanged(self):
         try:
             gsd = self.doubleSpinBoxGSD.value() / 100
@@ -347,9 +347,6 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.doubleSpinBoxOverlap.setValue(self.p * 100)
             self.doubleSpinBoxSidelap.setValue(self.q * 100)
 
-    def on_spinBoxMultipleBase(self):
-        pass
-
     def on_mMapLayerComboBoxProjectionCentres_layerChanged(self):
         try:
             if self.mMapLayerComboBoxProjectionCentres.currentLayer():
@@ -372,18 +369,6 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             QMessageBox.about(self, 'Error', 'See error log file in plugin'
                               ' folder')
             save_error()
-
-    def on_hFieldComboBox_fieldChanged(self):
-        pass
-
-    def on_mFieldComboBoxOmega_fieldChanged(self):
-        pass
-
-    def on_mFieldComboBoxPhi_fieldChanged(self):
-        pass
-
-    def on_mFieldComboBoxKappa_fieldChanged(self):
-        pass
 
     @pyqtSlot()
     def on_pushButtonGetHeights_clicked(self):
@@ -491,9 +476,6 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.dial.setValue(self.spinBoxDirection.value() - 180)
         else:
             self.dial.setValue(self.spinBoxDirection.value() + 180)
-
-    def on_spinBoxExceedExtremeStrips(self):
-        pass
 
     def on_radioButtonGSD_toggled(self):
         if self.radioButtonGSD.isChecked():
@@ -818,39 +800,63 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
                                     self.spinBoxPixelsAlongTrack.value(),
                                     self.spinBoxPixelsAcrossTrack.value())
                 new_camera.save()
-                self.cameras.append(new_camera)
-                self.comboBoxCamera.addItem(new_camera.name)
-                self.comboBoxCamera.setCurrentText(self.cameras[-1].name)
+                insert_index = max(len(self.cameras), 0)
+                self.cameras.insert(insert_index, new_camera)
+                self.comboBoxCamera.insertItem(insert_index, new_camera.name)
+                self.comboBoxCamera.setCurrentIndex(insert_index)
+                
+                self.pushButtonDeleteCamera.setEnabled(
+                    self.comboBoxCamera.currentText() != "Your camera")
+                self.pushButtonSaveCamera.setEnabled(
+                    self.comboBoxCamera.currentText() == "Your camera")
         except:
             QMessageBox.about(self, 'Error', 'Saving camera failed')
             save_error()
 
     @pyqtSlot()
     def on_pushButtonDeleteCamera_clicked(self):
-        """Push Button to delete camera from camera list."""
+        """Delete currently selected camera from the list."""
         try:
-            camera_names = [camera.name for camera in self.cameras]
-            option, pressed = QInputDialog.getItem(None, "Delete camera",
-                                            "Select camera to delete:",
-                                            camera_names, 0, False)
-            if pressed:
-                selected_camera = next(camera for camera in self.cameras if camera.name == option)
-                selected_camera.delete()
-                self.cameras.remove(selected_camera)
-                selected_camera_index = self.comboBoxCamera.findText(selected_camera.name)
-                self.comboBoxCamera.removeItem(selected_camera_index)
+            selected_name = self.comboBoxCamera.currentText()
 
-                if self.comboBoxCamera.currentText() in camera_names:
-                    self.doubleSpinBoxFocalLength.setValue(self.cameras[self.comboBoxCamera.currentIndex()].focal_length * 1_000)
-                    self.doubleSpinBoxSensorSize.setValue(self.cameras[self.comboBoxCamera.currentIndex()].sensor_size * 1_000_000)
-                    self.spinBoxPixelsAlongTrack.setValue(self.cameras[self.comboBoxCamera.currentIndex()].pixels_along_track)
-                    self.spinBoxPixelsAcrossTrack.setValue(self.cameras[self.comboBoxCamera.currentIndex()].pixels_across_track)
-                else:
-                    self.doubleSpinBoxFocalLength.setValue(self.doubleSpinBoxFocalLength.minimum())
-                    self.doubleSpinBoxSensorSize.setValue(self.doubleSpinBoxSensorSize.minimum())
-                    self.spinBoxPixelsAlongTrack.setValue(self.spinBoxPixelsAlongTrack.minimum())
-                    self.spinBoxPixelsAcrossTrack.setValue(self.spinBoxPixelsAcrossTrack.minimum())
-                    self.comboBoxCamera.addItem('No cameras listed')
-        except:
+            selected_camera = next((cam for cam in self.cameras if cam.name == selected_name), None)
+
+            if not selected_camera:
+                QMessageBox.information(self, "Cannot delete", "This camera is not deletable.")
+                return
+
+            selected_camera.delete()
+            self.cameras.remove(selected_camera)
+
+            selected_index = self.comboBoxCamera.findText(selected_name)
+            self.comboBoxCamera.removeItem(selected_index)
+
+            if self.cameras:
+                self.comboBoxCamera.setCurrentIndex(0)
+                self.on_comboBoxCamera_activated(0)
+            else:
+                self.comboBoxCamera.clear()
+                self.comboBoxCamera.addItem("Your camera")
+                self.comboBoxCamera.setCurrentText("Your camera")
+                self.camera = Camera(
+                    name='Your camera',
+                    focal_length=self.doubleSpinBoxFocalLength.value() / 1000,
+                    sensor_size=self.doubleSpinBoxSensorSize.value() / 1_000_000,
+                    pixels_along_track=self.spinBoxPixelsAlongTrack.value(),
+                    pixels_across_track=self.spinBoxPixelsAcrossTrack.value()
+                )
+                self.doubleSpinBoxFocalLength.setEnabled(True)
+                self.doubleSpinBoxSensorSize.setEnabled(True)
+                self.spinBoxPixelsAlongTrack.setEnabled(True)
+                self.spinBoxPixelsAcrossTrack.setEnabled(True)
+
+            self.pushButtonDeleteCamera.setEnabled(
+                self.comboBoxCamera.currentText() != "Your camera")
+            self.pushButtonSaveCamera.setEnabled(
+                self.comboBoxCamera.currentText() == "Your camera")
+
+        except Exception:
             QMessageBox.about(self, 'Error', 'Deleting camera failed')
             save_error()
+
+

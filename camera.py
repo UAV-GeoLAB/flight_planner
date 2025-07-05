@@ -18,29 +18,36 @@ class Camera():
 
     def save(self):
         """Save new camera in cameras.json file."""
-        with open(FILE_PATH, "r") as cameras_file:
-            data = json.load(cameras_file)
+        try:
+            with open(FILE_PATH, "r") as cameras_file:
+                try:
+                    data = json.load(cameras_file)
+                except json.JSONDecodeError:
+                    data = []
+        except FileNotFoundError:
+            data = []
 
-            is_duplicate = False
-            for i, camera in enumerate(data):
-                if self.name == camera['name']:
-                    data[i] = self.__dict__
-                    is_duplicate = True
+        is_duplicate = False
+        for i, camera in enumerate(data):
+            if self.name == camera['name']:
+                data[i] = self.__dict__
+                is_duplicate = True
 
-            if not is_duplicate:
-                data.append(self.__dict__)
+        if not is_duplicate:
+            data.append(self.__dict__)
+
         with open(FILE_PATH, "w") as cameras_file:
             json.dump(data, cameras_file, indent=4)
 
 
     def delete(self):
         """Delete selected camera from cameras.json file."""
-        with open(FILE_PATH, "r") as cameras_file:
+        with open(FILE_PATH, "r", encoding='utf-8') as cameras_file:
             data = json.load(cameras_file)
 
-        data.remove(self.__dict__)
+        data = [cam for cam in data if cam.get('name') != self.name]
 
-        with open(FILE_PATH, "w") as cameras_file:
+        with open(FILE_PATH, "w", encoding='utf-8') as cameras_file:
             json.dump(data, cameras_file, indent=4)
 
 

@@ -2,20 +2,18 @@ import os
 import traceback
 from math import (
     atan,
-    atan2,
     ceil,
     cos,
     fabs,
     pi,
-    sin,
-    sqrt
+    sin
 )
 
 import scipy.ndimage as ndimage
 import numpy as np
 from osgeo import gdal, osr
 from pyproj import Transformer
-from PyQt5.QtCore import pyqtSignal, QObject, QVariant
+from PyQt5.QtCore import pyqtSignal, QObject, QVariant, QTimer
 from PyQt5.QtGui import QColor
 from qgis.core import (
     QgsColorRampShader,
@@ -31,6 +29,8 @@ from qgis.core import (
     QgsSingleBandPseudoColorRenderer,
     QgsVectorLayer,
 )
+
+from PyQt5.QtWidgets import QApplication
 
 from .functions import (
     change_layer_style,
@@ -59,6 +59,7 @@ class Worker(QObject):
     error = pyqtSignal(Exception, basestring)
     progress = pyqtSignal(float)
     enabled = pyqtSignal(bool)
+    timeout = pyqtSignal()
 
     def __init__(self, **data):
         """Initialize attributes depending on the worker."""
@@ -89,9 +90,34 @@ class Worker(QObject):
         self.g_line_list = data.get('LineRangeList')
         self.geom_aoi = data.get('Range')
         self.killed = False
+        self.timeout_timer = QTimer()
+        self.timeout_timer.setSingleShot(True)
+        self.timeout_timer.timeout.connect(self.handle_timeout)
+        self.killed = False
+
+    def isRunning(self):
+        """Check if worker is still running."""
+        return hasattr(self, 'running') and self.running
+    
+    def handle_timeout(self):
+        """Handle timeout situation."""
+        if not self.killed:
+            self.kill()
+            self.timeout.emit()
+    def start_work(self):
+        """Start work with timeout."""
+        self.timeout_timer.start(10000)
+        self.killed = False
+        self.running = True
+
+    def finish_work(self):
+        """Clean up after work is done."""
+        self.timeout_timer.stop()
+        self.running = False
 
     def run_control(self):
         """Do the main work for control methods."""
+        self.start_work()
         result = []
         try:
 
@@ -142,10 +168,12 @@ class Worker(QObject):
             progress_c = 0
             step = feat_count // 1000
             # creating footprint, overlapping, GSD maps
+            print("tuu")
             for feature in features:
                 if self.killed is True:
                     # kill request received, exit loop early
                     break
+                QApplication.processEvents()
 
                 Xs = feature.geometry().asPoint().x()
                 Ys = feature.geometry().asPoint().y()
@@ -352,12 +380,15 @@ class Worker(QObject):
         except Exception as e:
             self.error.emit(e, traceback.format_exc())
             save_error()
+        
+        self.finish_work()
         self.finished.emit(result, "quality_control")
         self.enabled.emit(True)
 
 
     def run_followingTerrain(self):
         """Update altitude ASL and AGL for Following Terrain altitude type."""
+        self.start_work()
         result = []
         try:
             geotransf = self.raster.GetGeoTransform()
@@ -406,6 +437,7 @@ class Worker(QObject):
                 if self.killed is True:
                     # kill request received, exit loop early
                     break
+                QApplication.processEvents()
 
                 strip_proj_centres = [f for f in proj_cent_list if int(f[0]) == strip_nr]
                 pc_coords = [(p[-1].asPoint().x(), p[-1].asPoint().y()) for p in strip_proj_centres]
@@ -526,10 +558,12 @@ class Worker(QObject):
             # forward the exception upstream
             self.error.emit(e, traceback.format_exc())
             save_error()
+        self.finish_work()
         self.finished.emit(result, "flight_design")
         self.enabled.emit(True)
 
     def run_altitudeStrip(self):
+        self.start_work()
         result = []
         try:
             strips_count = int(self.layer.maximumValue(0))
@@ -546,6 +580,7 @@ class Worker(QObject):
                 if self.killed is True:
                     # kill request received, exit loop early
                     break
+                QApplication.processEvents()
 
                 strip_nr = '%(StripNr)04d' % {'StripNr': t}
                 feats = self.layer.getFeatures('"Strip" = ' + str(strip_nr))
@@ -659,6 +694,7 @@ class Worker(QObject):
             # forward the exception upstream
             self.error.emit(e, traceback.format_exc())
             save_error()
+        self.finish_work()
         self.finished.emit(result, "flight_design")
         self.enabled.emit(True)
 

@@ -696,7 +696,17 @@ min and max terrain's height</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="3">
+   <item row="0" column="0">
+    <widget class="QLabel" name="labelCamera">
+    <property name="text">
+    <string>Select camera:</string>
+    </property>
+    <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+    </widget>
+    </item>
+   <item row="0" column="1" colspan="2">
     <widget class="QComboBox" name="comboBoxCamera">
      <property name="currentText">
       <string/>
@@ -706,7 +716,7 @@ min and max terrain's height</string>
    <item row="1" column="1">
     <widget class="QPushButton" name="pushButtonSaveCamera">
      <property name="text">
-      <string>Save Camera</string>
+      <string>Add Camera</string>
      </property>
     </widget>
    </item>
