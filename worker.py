@@ -168,7 +168,6 @@ class Worker(QObject):
             progress_c = 0
             step = feat_count // 1000
             # creating footprint, overlapping, GSD maps
-            print("tuu")
             for feature in features:
                 if self.killed is True:
                     # kill request received, exit loop early
@@ -382,9 +381,10 @@ class Worker(QObject):
             save_error()
         
         self.finish_work()
+        if self.killed:
+            return
         self.finished.emit(result, "quality_control")
         self.enabled.emit(True)
-
 
     def run_followingTerrain(self):
         """Update altitude ASL and AGL for Following Terrain altitude type."""
@@ -559,6 +559,8 @@ class Worker(QObject):
             self.error.emit(e, traceback.format_exc())
             save_error()
         self.finish_work()
+        if self.killed:
+            return
         self.finished.emit(result, "flight_design")
         self.enabled.emit(True)
 
@@ -695,8 +697,11 @@ class Worker(QObject):
             self.error.emit(e, traceback.format_exc())
             save_error()
         self.finish_work()
+        if self.killed:
+            return
         self.finished.emit(result, "flight_design")
         self.enabled.emit(True)
+        
 
     def kill(self):
         self.killed = True

@@ -858,25 +858,38 @@ def transf_coord(transformer, x, y):
 
 def minmaxheight(vector, raster):
     """Return max and min value of raster clipped by vector layer."""
-
-    zone_stats = QgsZonalStatistics(vector, raster, 'pre-', 1,
-                                    QgsZonalStatistics.Statistics(
-                                        QgsZonalStatistics.Min |
-                                        QgsZonalStatistics.Max))
-    zone_stats.calculateStatistics(None)
-
-    for f in vector.getFeatures():
-        min_h = f.attribute('pre-min')
-        max_h = f.attribute('pre-max')
-
-    min_idx = vector.fields().lookupField('pre-min')
-    max_idx = vector.fields().lookupField('pre-max')
-    vector.startEditing()
-    vector.deleteAttributes([min_idx, max_idx])
-    vector.commitChanges()
-
-    return min_h, max_h
-
+    temp_layer = QgsVectorLayer("Polygon?crs=" + vector.crs().authid(), "temp", "memory")
+    temp_layer_data = temp_layer.dataProvider()
+    
+    features = vector.getFeatures()
+    for feature in features:
+        temp_layer_data.addFeature(feature)
+    temp_layer.updateExtents()
+    
+    zone_stats = QgsZonalStatistics(temp_layer, raster, 'pre_', 1,
+                                    QgsZonalStatistics.Min | QgsZonalStatistics.Max)
+    result = zone_stats.calculateStatistics(None)
+    
+    if not result == 0:
+        raise RuntimeError("Failed to calculate zonal statistics")
+    
+    min_h = None
+    max_h = None
+    for f in temp_layer.getFeatures():
+        min_h = f.attribute('pre_min')
+        max_h = f.attribute('pre_max')
+        break
+    
+    if min_h is None or max_h is None:
+        raise ValueError("Could not retrieve min/max values from raster")
+    
+    try:
+        min_val = float(min_h.toString()) if isinstance(min_h, QVariant) else float(min_h)
+        max_val = float(max_h.toString()) if isinstance(max_h, QVariant) else float(max_h)
+    except:
+        raise ValueError("Could not convert min/max values to float")
+    
+    return min_val, max_val
 
 def save_error():
     """Save error traceback as file."""

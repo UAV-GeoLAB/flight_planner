@@ -79,7 +79,6 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             "\nThe heights are also used to calculate average "
             "terrain height, but only in 'One altitude for entire"
             " flight' mode. Read more about it in the Guide.")
-        self.mGroupBox.setToolTipDuration(10000)
 
         self.mMapLayerComboBoxProjectionCentres.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.mFieldComboBoxAltControl.setFilters(QgsFieldProxyModel.Numeric)
@@ -123,22 +122,9 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.control_run_counter = 1
         self.design_run_counter = 1
 
-    def workerTimeout(self, worker, worker_type):
-        """Handle worker timeout."""
-        QMessageBox.critical(self, "Timeout Error", 
-                        f"The {worker_type} operation took too long (more than 20 seconds) and was stopped.")
-        
-        self.pushButtonRunControl.setEnabled(True)
-        self.pushButtonRunDesign.setEnabled(True)
-        
-        if hasattr(worker, 'isRunning') and worker.isRunning():
-            worker.kill()
-
     def startWorker_control(self, **params):
         """Start worker for control module of plugin."""
         worker = Worker(**params)
-
-        worker.timeout.connect(lambda: self.workerTimeout(worker, "control"))
         
         self.pushButtonStopControl.clicked.connect(worker.kill)
         thread = QThread(self)
@@ -159,9 +145,6 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         each strip' or 'terraing following' mode."""
         worker = Worker(**params)
 
-        worker_type = "altitude" if "altitude_AGL" in params else "terrain"
-        worker.timeout.connect(lambda: self.workerTimeout(worker, worker_type))
-
         thread = QThread(self)
         worker.moveToThread(thread)
         worker.finished.connect(self.workerFinished)
@@ -180,13 +163,6 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.worker = worker
 
     def workerFinished(self, result, group_name):
-        if hasattr(self, 'worker'):
-            self.worker.deleteLater()
-        if hasattr(self, 'thread'):
-            self.thread.quit()
-            self.thread.wait()
-            self.thread.deleteLater()
-        
         if result is not None:
             if group_name == 'flight_design':
                 add_layers_to_canvas(result, group_name, self.design_run_counter)
@@ -226,17 +202,6 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         else:
             self.doubleSpinBoxAltAGL.setSpecialValueText("")
             self.doubleSpinBoxAltAGL.setValue(w)
-
-    # def on_comboBoxCamera_highlighted(self):
-    #     camera_names = [camera.name for camera in self.cameras]
-    #     items_list = [self.comboBoxCamera.itemText(i) for i in range(self.comboBoxCamera.count())]
-    #     if ("Select camera or set parameters" in items_list 
-    #         or "No cameras listed" in items_list) and camera_names:
-    #         self.comboBoxCamera.clear()
-    #         self.comboBoxCamera.addItems(camera_names)
-    #     elif ("Select camera or set parameters" in items_list) and not camera_names:
-    #         self.comboBoxCamera.clear()
-    #         self.comboBoxCamera.addItem("No cameras listed")
 
     def on_comboBoxCamera_activated(self, i):
         if not self.cameras and self.comboBoxCamera.currentText() != "Your camera":
@@ -373,18 +338,17 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
     @pyqtSlot()
     def on_pushButtonGetHeights_clicked(self):
         attributes_exist = True
-        if not hasattr(self, 'DTM'):
-            QMessageBox.about(self, 'DTM needed',
-                'You have to load DTM layer')
+        if not hasattr(self, 'DTM') or not self.DTM:
+            QMessageBox.about(self, 'DTM needed', 'You have to load valid DTM layer')
             attributes_exist = False
 
         if self.tabBlock:
-            if not hasattr(self, 'AreaOfInterest'):
+            if not hasattr(self, 'AreaOfInterest') or not self.AreaOfInterest:
                 QMessageBox.about(self, 'AoI needed',
-                    'You have to load Area of Interest layer')
+                    'You have to load valid Area of Interest layer')
                 attributes_exist = False
         else:
-            if not hasattr(self, 'pathLine'):
+            if not hasattr(self, 'pathLine') or not self.pathLine:
                 QMessageBox.about(self, 'Corridor line needed',
                     'You have to load Corridor line layer')
                 attributes_exist = False
@@ -421,12 +385,12 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
                                             'OUTPUT': 'TEMPORARY_OUTPUT'})
                     self.bufferedLine = buffLine['OUTPUT']
                     h_min, h_max = minmaxheight(self.bufferedLine, self.DTM)
+                self.doubleSpinBoxMinHeight.setValue(h_min)
+                self.doubleSpinBoxMaxHeight.setValue(h_max)
+
             except:
                 QMessageBox.about(self, 'Error', 'Get heights from DTM failed')
                 save_error()
-            else:
-                self.doubleSpinBoxMinHeight.setValue(h_min)
-                self.doubleSpinBoxMaxHeight.setValue(h_max)
 
     def on_mMapLayerComboBoxCorridor_layerChanged(self):
         if self.mMapLayerComboBoxCorridor.currentLayer():
@@ -805,10 +769,9 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.comboBoxCamera.insertItem(insert_index, new_camera.name)
                 self.comboBoxCamera.setCurrentIndex(insert_index)
                 
-                self.pushButtonDeleteCamera.setEnabled(
-                    self.comboBoxCamera.currentText() != "Your camera")
-                self.pushButtonSaveCamera.setEnabled(
-                    self.comboBoxCamera.currentText() == "Your camera")
+                self.reload_camera_list()
+                self.comboBoxCamera.setCurrentText(new_camera.name)
+                self.on_comboBoxCamera_activated(self.comboBoxCamera.currentIndex())
         except:
             QMessageBox.about(self, 'Error', 'Saving camera failed')
             save_error()
@@ -828,8 +791,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             selected_camera.delete()
             self.cameras.remove(selected_camera)
 
-            selected_index = self.comboBoxCamera.findText(selected_name)
-            self.comboBoxCamera.removeItem(selected_index)
+            self.reload_camera_list()
 
             if self.cameras:
                 self.comboBoxCamera.setCurrentIndex(0)
@@ -858,5 +820,22 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         except Exception:
             QMessageBox.about(self, 'Error', 'Deleting camera failed')
             save_error()
+        
+    def reload_camera_list(self):
+        self.cameras.clear()
+        self.comboBoxCamera.clear()
+
+        try:
+            with open(self.cameras_file, 'r', encoding='utf-8') as file:
+                data = file.read().strip()
+                if data:
+                    cameras_data = json.loads(data)
+                    self.cameras = [Camera(**cam) for cam in sorted(cameras_data, key=lambda x: x['name'])]
+                    self.comboBoxCamera.addItems([cam.name for cam in self.cameras])
+        except Exception:
+            save_error()
+
+        self.comboBoxCamera.addItem("Your camera")
+
 
 
