@@ -1,0 +1,9 @@
+[
+    {
+        "name": "moja1",
+        "focal_length": 0.21,
+        "sensor_size": 5.2e-06,
+        "pixels_along_track": 13080,
+        "pixels_across_track": 20010
+    }
+]
