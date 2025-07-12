@@ -2,14 +2,4 @@ Error_log.txt
 **/__pycache__/
 *.py[cod]
 *$py.class
-
-cameras.json
-[
-    {
-        "name": "moja1",
-        "focal_length": 0.21,
-        "sensor_size": 5.2e-06,
-        "pixels_along_track": 13080,
-        "pixels_across_track": 20010
-    }
-]
+camera/cameras.json
