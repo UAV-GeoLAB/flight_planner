@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QInputDialog
 from PyQt5.QtCore import pyqtSlot
 from ..camera.models import Camera
 from ..camera.storage import delete_camera, load_cameras, add_new_camera
-from ..utils import traceback_error, show_info
+from ..utils import show_info
 
 class CameraSectionHandler:
     def __init__(self, dialog):

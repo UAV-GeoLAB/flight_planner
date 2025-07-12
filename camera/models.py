@@ -6,4 +6,3 @@ class Camera():
         self.sensor_size = sensor_size
         self.pixels_along_track = pixels_along_track
         self.pixels_across_track = pixels_across_track
-    
