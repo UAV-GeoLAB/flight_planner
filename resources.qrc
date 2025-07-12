@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/flight_planner_v1" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
