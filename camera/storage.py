@@ -1,6 +1,6 @@
 import json
 import os
-from ..utils import save_error
+from ..utils import traceback_error, show_error, show_info
 from .models import Camera
 
 FILE_PATH = os.path.join(os.path.dirname(__file__), 'cameras.json')
@@ -26,7 +26,7 @@ def save_camera(camera: Camera):
         with open(FILE_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4)
     except Exception:
-        save_error()
+        traceback_error()
 
 
 def delete_camera(camera: Camera):
@@ -37,7 +37,7 @@ def delete_camera(camera: Camera):
         with open(FILE_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4)
     except Exception:
-        save_error()
+        traceback_error()
 
 
 def load_cameras():
@@ -47,5 +47,5 @@ def load_cameras():
             if data:
                 return [Camera(**c) for c in json.loads(data)]
     except Exception:
-        save_error()
+        traceback_error()
     return []

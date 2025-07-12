@@ -1,10 +1,33 @@
-import os
-import time
 import traceback
+from qgis.core import QgsMessageLog, Qgis
+from qgis.PyQt.QtWidgets import QMessageBox
 
-def save_error():
-    error_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 'Error_log.txt')
-    with open(error_path, 'a') as error_file:
-        error_file.write(time.ctime(time.time()) + '\n')
-        error_file.write(traceback.format_exc() + '\n')
+
+def traceback_error():
+    QgsMessageLog.logMessage('\n' + traceback.format_exc(), 'Flight Planner', Qgis.Critical)
+
+
+def show_error(text="Error in process", level="Critical"):
+    if level == "Critical":
+        qgis_level = Qgis.Critical
+    elif level == "Warning":
+        qgis_level = Qgis.Warning
+    elif level == "Info":
+        qgis_level = Qgis.Info
+    elif level == "Success":
+        qgis_level = Qgis.Success
+    else:
+        qgis_level = Qgis.Info
+
+    QgsMessageLog.logMessage(text, 'Flight Planner', qgis_level)
+
+
+def show_info(title="Flight Planner", text="Information", level="Information"):
+    if level == "Information":
+        QMessageBox.information(None, title, text)
+    elif level == "Critical":
+        QMessageBox.critical(None, title, text)
+    elif level == "Warning":
+        QMessageBox.warning(None, title, text)
+    else:
+        QMessageBox.information(None, title, text)
