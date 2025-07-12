@@ -1,0 +1,4 @@
+Error_log.txt
+**/__pycache__/
+*.py[cod]
+*$py.class

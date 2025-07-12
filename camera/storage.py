@@ -28,6 +28,10 @@ def save_camera(camera: Camera):
     except Exception:
         save_error()
 
+def add_new_camera(name, focal_length, sensor_size, pix_along, pix_across):
+    camera = Camera(name, focal_length, sensor_size, pix_along, pix_across)
+    save_camera(camera)
+    return camera
 
 def delete_camera(camera: Camera):
     try:

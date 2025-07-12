@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QInputDialog, QMessageBox
 from PyQt5.QtCore import pyqtSlot
-from ..camera.manager import get_all_cameras, get_camera_by_name, add_new_camera, remove_camera
 from ..camera.models import Camera
+from ..camera.storage import delete_camera, load_cameras, add_new_camera
 from ..utils import save_error
 
 
@@ -20,7 +20,7 @@ class CameraSectionHandler:
         self.on_camera_selected(0)
 
     def reload_camera_list(self):
-        self.cameras = get_all_cameras()
+        self.cameras = sorted(load_cameras(), key=lambda c: c.name)
         cb = self.dialog.comboBoxCamera
         cb.clear()
         cb.addItems([cam.name for cam in self.cameras])
@@ -39,7 +39,7 @@ class CameraSectionHandler:
                 pixels_across_track=self.dialog.spinBoxPixelsAcrossTrack.value()
             )
         else:
-            camera = get_camera_by_name(name, self.cameras)
+            camera = next((c for c in self.cameras if c.name == name), None)
             if camera:
                 self.dialog.doubleSpinBoxFocalLength.setValue(camera.focal_length * 1000)
                 self.dialog.doubleSpinBoxSensorSize.setValue(camera.sensor_size * 1_000_000)
@@ -81,7 +81,7 @@ class CameraSectionHandler:
                 QMessageBox.information(self.dialog, "Cannot delete", "This camera is not deletable.")
                 return
 
-            remove_camera(cam)
+            delete_camera(cam)
             self.cameras.remove(cam)
 
             self.reload_camera_list()
@@ -91,18 +91,8 @@ class CameraSectionHandler:
             else:
                 self.dialog.comboBoxCamera.clear()
                 self.dialog.comboBoxCamera.addItem("Your camera")
-                self.dialog.comboBoxCamera.setCurrentText("Your camera")
-                self.camera = Camera(
-                    name="Your camera",
-                    focal_length=self.dialog.doubleSpinBoxFocalLength.value() / 1000,
-                    sensor_size=self.dialog.doubleSpinBoxSensorSize.value() / 1_000_000,
-                    pixels_along_track=self.dialog.spinBoxPixelsAlongTrack.value(),
-                    pixels_across_track=self.dialog.spinBoxPixelsAcrossTrack.value()
-                )
-                self._enable_camera_fields(True)
-
-            self.dialog.pushButtonDeleteCamera.setEnabled(name != "Your camera")
-            self.dialog.pushButtonSaveCamera.setEnabled(name == "Your camera")
+                self.dialog.comboBoxCamera.setCurrentIndex(0)
+                self.on_camera_selected(0)
         except Exception:
             QMessageBox.critical(self.dialog, 'Error', 'Deleting camera failed')
             save_error()

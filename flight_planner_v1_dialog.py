@@ -1,4 +1,3 @@
-
 from qgis.PyQt import QtWidgets
 from .ui.camera_section import CameraSectionHandler
 import os
@@ -11,6 +10,5 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-
         self.camera_handler = CameraSectionHandler(self)
         self.camera_handler.setup()
