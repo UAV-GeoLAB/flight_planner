@@ -30,7 +30,6 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             "Separate Altitude ASL For Each Strip",
             "Terrain Following"])
         
-        # Filters for ComboBoxes data types
         self.mMapLayerComboBoxProjectionCentres.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.mFieldComboBoxAltControl.setFilters(QgsFieldProxyModel.Numeric)
         self.mFieldComboBoxOmega.setFilters(QgsFieldProxyModel.Numeric)
@@ -39,19 +38,32 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.mMapLayerComboBoxDTM.setFilters(QgsMapLayerProxyModel.RasterLayer)
         self.mMapLayerComboBoxAoI.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.mMapLayerComboBoxCorridor.setFilters(QgsMapLayerProxyModel.LineLayer)
+
+        self._init_default_layers()
+    
+    def _init_default_layers(self):
+        self.on_mMapLayerComboBoxDTM_layerChanged()
+        self.on_mMapLayerComboBoxAoI_layerChanged()
+        self.on_mMapLayerComboBoxCorridor_layerChanged()
     
     def on_mMapLayerComboBoxDTM_layerChanged(self):
-        if lyr := self.mMapLayerComboBoxDTM.currentLayer():
-            self.DTM = lyr
-            self.raster = gdal.Open(lyr.source())
-            self.terrain_handler.set_dtm(lyr, self.raster)
+        lyr = self.mMapLayerComboBoxDTM.currentLayer()
+        self.DTM = lyr
+        if lyr:
+            try:
+                self.raster = gdal.Open(lyr.source())
+                self.terrain_handler.set_dtm(lyr, self.raster)
+            except Exception as e:
+                print(f"Error loading DTM: {e}")
 
     def on_mMapLayerComboBoxAoI_layerChanged(self):
-        if lyr := self.mMapLayerComboBoxAoI.currentLayer():
-            self.AreaOfInterest = lyr
+        lyr = self.mMapLayerComboBoxAoI.currentLayer()
+        self.AreaOfInterest = lyr
+        if lyr:
             self.terrain_handler.set_aoi(lyr)
 
     def on_mMapLayerComboBoxCorridor_layerChanged(self):
-        if lyr := self.mMapLayerComboBoxCorridor.currentLayer():
-            self.pathLine = lyr
+        lyr = self.mMapLayerComboBoxCorridor.currentLayer()
+        self.pathLine = lyr
+        if lyr:
             self.terrain_handler.set_corridor_line(lyr)
