@@ -4,6 +4,7 @@ from .ui.altitude_section import AltitudeSectionHandler
 from .ui.terrain_section import TerrainSectionHandler
 from .ui.direction_section import DirectionSectionHandler
 import os
+from .utils import show_error
 from qgis.PyQt import uic
 from osgeo import gdal
 from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel
@@ -54,7 +55,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.raster = gdal.Open(lyr.source())
                 self.terrain_handler.set_dtm(lyr, self.raster)
             except Exception as e:
-                print(f"Error loading DTM: {e}")
+                show_error("Error loading DTM: {e}", "Critical")
 
     def on_mMapLayerComboBoxAoI_layerChanged(self):
         lyr = self.mMapLayerComboBoxAoI.currentLayer()
