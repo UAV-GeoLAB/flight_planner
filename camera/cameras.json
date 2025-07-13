@@ -56,6 +56,13 @@
         "pixels_across_track": 20010
     },
     {
+        "name": "UltraCamLp",
+        "focal_length": 0.07,
+        "sensor_size": 6e-06,
+        "pixels_along_track": 7920,
+        "pixels_across_track": 11704
+    },
+    {
         "name": "UltraCam-X",
         "focal_length": 0.1,
         "sensor_size": 7.2e-06,

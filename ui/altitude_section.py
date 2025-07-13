@@ -106,6 +106,7 @@ class AltitudeSectionHandler:
             self.dialog.comboBoxAltitudeType.setCurrentText("One Altitude ASL For Entire Flight")
             return
 
+        self.dialog.labelToleranceWaypoints.setEnabled(text == 'Terrain Following')
         self.dialog.doubleSpinBoxTolerance.setEnabled(text == 'Terrain Following')
 
         if text != 'One Altitude ASL For Entire Flight':
@@ -124,3 +125,5 @@ class AltitudeSectionHandler:
         self.dialog.radioButtonAltAGL.setEnabled(is_terrain_following)
         if not is_terrain_following:
             self.dialog.radioButtonGSD.setChecked(True)
+            self.dialog.doubleSpinBoxGSD.setEnabled(True)
+            self.dialog.doubleSpinBoxAltAGL.setEnabled(False)
