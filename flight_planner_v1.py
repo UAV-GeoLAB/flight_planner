@@ -8,7 +8,6 @@ import os.path
 
 
 class FlightPlannerPW:
-
     def __init__(self, iface):
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
@@ -30,7 +29,6 @@ class FlightPlannerPW:
 
     def tr(self, message):
         return QCoreApplication.translate('FlightPlannerPW', message)
-
 
     def add_action(
         self,
@@ -76,14 +74,12 @@ class FlightPlannerPW:
 
         self.first_start = True
 
-
     def unload(self):
         for action in self.actions:
             self.iface.removePluginMenu(
                 self.tr(u'&Flight Planner PW'),
                 action)
             self.iface.removeToolBarIcon(action)
-
 
     def run(self):
         if self.first_start == True:
