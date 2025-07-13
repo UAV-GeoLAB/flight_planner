@@ -29,3 +29,8 @@ def show_info(title="Flight Planner", text="Information", level="Information"):
         QMessageBox.warning(None, title, text)
     else:
         QMessageBox.information(None, title, text)
+
+def transf_coord(transformer, x, y):
+    """Transform coordinates between two CRS."""
+    x_transformed, y_transformed = transformer.transform(x, y)
+    return x_transformed, y_transformed

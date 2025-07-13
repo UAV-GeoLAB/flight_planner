@@ -9,14 +9,31 @@ class CameraSectionHandler:
         self.dialog = dialog
         self.cameras = []
         self.camera = None
+        self.on_camera_changed = None
 
     def setup(self):
         self.reload_camera_list()
         self.dialog.comboBoxCamera.activated.connect(self.on_camera_selected)
         self.dialog.pushButtonSaveCamera.clicked.connect(lambda: self.on_save_camera())
         self.dialog.pushButtonDeleteCamera.clicked.connect(lambda: self.on_delete_camera())
+        
+        self.dialog.doubleSpinBoxFocalLength.valueChanged.connect(self._on_camera_params_changed)
+        self.dialog.doubleSpinBoxSensorSize.valueChanged.connect(self._on_camera_params_changed)
+        self.dialog.spinBoxPixelsAlongTrack.valueChanged.connect(self._on_camera_params_changed)
+        self.dialog.spinBoxPixelsAcrossTrack.valueChanged.connect(self._on_camera_params_changed)
+        
         self.dialog.comboBoxCamera.setCurrentIndex(0)
         self.on_camera_selected(0)
+
+    def _on_camera_params_changed(self):
+        if self.camera and self.camera.name == "Your camera":
+            self.camera.focal_length = self.dialog.doubleSpinBoxFocalLength.value() / 1000
+            self.camera.sensor_size = self.dialog.doubleSpinBoxSensorSize.value() / 1_000_000
+            self.camera.pixels_along_track = self.dialog.spinBoxPixelsAlongTrack.value()
+            self.camera.pixels_across_track = self.dialog.spinBoxPixelsAcrossTrack.value()
+
+            if self.on_camera_changed:
+                self.on_camera_changed()
 
     def reload_camera_list(self):
         self.cameras = sorted(load_cameras(), key=lambda c: c.name)
@@ -28,6 +45,7 @@ class CameraSectionHandler:
     def on_camera_selected(self, index):
         cb = self.dialog.comboBoxCamera
         name = cb.currentText()
+
         if name == "Your camera":
             self._enable_camera_fields(True)
             self.camera = Camera(
@@ -49,6 +67,9 @@ class CameraSectionHandler:
 
         self.dialog.pushButtonDeleteCamera.setEnabled(name != "Your camera")
         self.dialog.pushButtonSaveCamera.setEnabled(name == "Your camera")
+
+        if self.on_camera_changed:
+            self.on_camera_changed()
 
     @pyqtSlot()
     def on_save_camera(self):
