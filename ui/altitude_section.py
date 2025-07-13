@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMessageBox
-from ..utils import show_error
+from ..utils import show_error, show_info
 
 class AltitudeSectionHandler:
     def __init__(self, dialog, camera_handler=None):
@@ -102,28 +102,22 @@ class AltitudeSectionHandler:
 
         if text in ['Separate Altitude ASL For Each Strip', 'Terrain Following'] \
            and not self.dialog.mMapLayerComboBoxDTM.currentLayer():
-            QMessageBox.about(self.dialog, 'DTM needed', 'You must select DTM to use this option')
-            self.dialog.comboBoxAltitudeType.setCurrentText("One Altitude ASL For Entire Flight")
+            show_info(title='DTM needed', text='You must select DTM to run this option.', level="Warning")
             return
+
+        self._enable_more_settings_groupbox(text == 'One Altitude ASL For Entire Flight')
 
         self.dialog.labelToleranceWaypoints.setEnabled(text == 'Terrain Following')
         self.dialog.doubleSpinBoxTolerance.setEnabled(text == 'Terrain Following')
-
-        if text != 'One Altitude ASL For Entire Flight':
-            self.dialog.checkBoxIncreaseOverlap.setChecked(False)
-            self.dialog.checkBoxIncreaseOverlap.setEnabled(False)
-            self.dialog.pushButtonGetHeights.setEnabled(False)
-            self.dialog.doubleSpinBoxMaxHeight.setEnabled(False)
-            self.dialog.doubleSpinBoxMinHeight.setEnabled(False)
-        else:
-            self.dialog.checkBoxIncreaseOverlap.setEnabled(True)
-            self.dialog.pushButtonGetHeights.setEnabled(True)
-            self.dialog.doubleSpinBoxMaxHeight.setEnabled(True)
-            self.dialog.doubleSpinBoxMinHeight.setEnabled(True)
-
-        is_terrain_following = (text == 'Terrain Following')
-        self.dialog.radioButtonAltAGL.setEnabled(is_terrain_following)
-        if not is_terrain_following:
+        self.dialog.radioButtonAltAGL.setEnabled(text == 'Terrain Following')
+        if text != 'Terrain Following':
             self.dialog.radioButtonGSD.setChecked(True)
             self.dialog.doubleSpinBoxGSD.setEnabled(True)
             self.dialog.doubleSpinBoxAltAGL.setEnabled(False)
+    
+    def _enable_more_settings_groupbox(self, enable: bool):
+        self.dialog.checkBoxIncreaseOverlap.setEnabled(enable)
+        self.dialog.pushButtonGetHeights.setEnabled(enable)
+        self.dialog.doubleSpinBoxMaxHeight.setEnabled(enable)
+        self.dialog.doubleSpinBoxMinHeight.setEnabled(enable)
+
