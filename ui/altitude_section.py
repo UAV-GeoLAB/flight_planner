@@ -48,7 +48,7 @@ class AltitudeSectionHandler:
             sensor_mm = self.camera_handler.camera.sensor_size * 1000
             alt_m = self.dialog.doubleSpinBoxAltAGL.value()
             
-            gsd_cm = (alt_m * 100 * sensor_mm) / (focal_mm * 10)
+            gsd_cm = (alt_m * 100 * sensor_mm) / focal_mm
             self.dialog.doubleSpinBoxGSD.blockSignals(True)
             
             if gsd_cm > self.dialog.doubleSpinBoxGSD.maximum():

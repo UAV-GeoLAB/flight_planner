@@ -30,7 +30,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             "Separate Altitude ASL For Each Strip",
             "Terrain Following"])
         
-                # Filters for ComboBoxes data types
+        # Filters for ComboBoxes data types
         self.mMapLayerComboBoxProjectionCentres.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.mFieldComboBoxAltControl.setFilters(QgsFieldProxyModel.Numeric)
         self.mFieldComboBoxOmega.setFilters(QgsFieldProxyModel.Numeric)
