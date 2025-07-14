@@ -136,4 +136,6 @@ class AltitudeSectionHandler:
         self.dialog.pushButtonGetHeights.setEnabled(enable)
         self.dialog.doubleSpinBoxMaxHeight.setEnabled(enable)
         self.dialog.doubleSpinBoxMinHeight.setEnabled(enable)
+        self.dialog.labelMaxHeight.setEnabled(enable)
+        self.dialog.labelMinHeight.setEnabled(enable)
 
