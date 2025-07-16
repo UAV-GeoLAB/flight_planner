@@ -8,12 +8,16 @@ from .utils import show_error
 from qgis.PyQt import uic
 from osgeo import gdal
 from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel
+from .ui.flight_design.altitude_type.one_altitude.run_design import run_design_one_altitude
+from .ui.flight_design.altitude_type.separate_altitude.run_design import run_design_separate_altitude
+from .ui.flight_design.altitude_type.terrain_following.run_design import run_design_terrain_following
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'flight_planner_v1_dialog_base.ui'))
 
 class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
+        show_error("FlightPlannerPWDialog: __init__ called", level="Informative")
         super().__init__(parent)
         self.setupUi(self)
         self.camera_handler = CameraSectionHandler(self)
@@ -39,7 +43,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.mMapLayerComboBoxDTM.setFilters(QgsMapLayerProxyModel.RasterLayer)
         self.mMapLayerComboBoxAoI.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.mMapLayerComboBoxCorridor.setFilters(QgsMapLayerProxyModel.LineLayer)
-
+        
         self._init_default_layers()
     
     def _init_default_layers(self):
@@ -68,3 +72,15 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.pathLine = lyr
         if lyr:
             self.terrain_handler.set_corridor_line(lyr)
+    
+    def on_pushButtonRunDesign_clicked(self):
+        altitude_type = self.comboBoxAltitudeType.currentText()
+
+        if altitude_type == 'One Altitude ASL For Entire Flight':
+            run_design_one_altitude(self)
+
+        elif altitude_type == 'Separate Altitude ASL For Each Strip':
+            run_design_separate_altitude(self)
+        
+        elif altitude_type == 'Terrain Following':
+            run_design_terrain_following(self)
