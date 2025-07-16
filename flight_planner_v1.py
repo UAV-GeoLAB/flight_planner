@@ -25,7 +25,8 @@ class FlightPlannerPW:
         self.actions = []
         self.menu = self.tr(u'&Flight Planner PW')
 
-        self.first_start = None
+        #self.first_start = None
+        self.dlg = None
 
     def tr(self, message):
         return QCoreApplication.translate('FlightPlannerPW', message)
@@ -80,13 +81,20 @@ class FlightPlannerPW:
                 self.tr(u'&Flight Planner PW'),
                 action)
             self.iface.removeToolBarIcon(action)
+        if self.dlg:
+            self.dlg.close()
 
     def run(self):
-        if self.first_start == True:
-            self.first_start = False
-            self.dlg = FlightPlannerPWDialog()
-
+        if self.dlg:
+            self.dlg.close()
+            
+        self.dlg = FlightPlannerPWDialog()
         self.dlg.show()
-        result = self.dlg.exec_()
-        if result:
-            pass
+    #     if self.first_start == True:
+    #         self.first_start = False
+    #         self.dlg = FlightPlannerPWDialog()
+
+    #     self.dlg.show()
+    #     result = self.dlg.exec_()
+    #     if result:
+    #         pass

@@ -34,7 +34,14 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.comboBoxAltitudeType.addItems(["One Altitude ASL For Entire Flight",
             "Separate Altitude ASL For Each Strip",
             "Terrain Following"])
-        
+
+        # Disconnect previous connections to avoid multiple calls
+        try:
+            self.pushButtonRunDesign.clicked.disconnect()
+        except TypeError:
+            pass
+        self.pushButtonRunDesign.clicked.connect(self.on_pushButtonRunDesign_clicked)
+
         self.mMapLayerComboBoxProjectionCentres.setFilters(QgsMapLayerProxyModel.PointLayer)
         self.mFieldComboBoxAltControl.setFilters(QgsFieldProxyModel.Numeric)
         self.mFieldComboBoxOmega.setFilters(QgsFieldProxyModel.Numeric)
@@ -72,15 +79,14 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.pathLine = lyr
         if lyr:
             self.terrain_handler.set_corridor_line(lyr)
-    
+
+
     def on_pushButtonRunDesign_clicked(self):
         altitude_type = self.comboBoxAltitudeType.currentText()
 
         if altitude_type == 'One Altitude ASL For Entire Flight':
             run_design_one_altitude(self)
-
         elif altitude_type == 'Separate Altitude ASL For Each Strip':
             run_design_separate_altitude(self)
-        
         elif altitude_type == 'Terrain Following':
             run_design_terrain_following(self)
