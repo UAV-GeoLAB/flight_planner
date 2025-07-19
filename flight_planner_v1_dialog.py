@@ -20,9 +20,11 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         show_error("FlightPlannerPWDialog: __init__ called", level="Informative")
         super().__init__(parent)
         self.setupUi(self)
+        self.design_run_counter = 1
+        
         self.camera_handler = CameraSectionHandler(self)
         self.camera_handler.setup()
-
+        
         self.altitude_handler = AltitudeSectionHandler(self, self.camera_handler)
         self.altitude_handler.setup()
 
@@ -90,3 +92,18 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             run_design_separate_altitude(self)
         elif altitude_type == 'Terrain Following':
             run_design_terrain_following(self)
+
+    def get_geom_AoI(self):
+        layer = self.mMapLayerComboBoxAoI.currentLayer()
+        if not layer:
+            show_error("Nie wybrano warstwy AOI", level="Critical")
+            return None
+
+        features = list(layer.getFeatures())
+        if not features:
+            show_error("Warstwa AOI jest pusta", level="Critical")
+            return None
+
+        # Załóżmy, że interesuje nas geometria pierwszego obiektu
+        geom = features[0].geometry()
+        return geom

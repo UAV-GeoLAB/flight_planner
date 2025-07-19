@@ -1,7 +1,7 @@
 from qgis.core import QgsRectangle, QgsVectorLayer
 from qgis.analysis import QgsZonalStatistics
 from qgis import processing
-from math import ceil, fabs
+from math import ceil, fabs, isnan
 from pyproj import Transformer
 from ..utils import transf_coord
 
@@ -38,6 +38,19 @@ def create_buffer_around_line(path_line, gdal_ds, dtm_layer, buffer_value):
     out = processing.run("native:buffer", params)["OUTPUT"]
     return out, min_buf
 
+def check_raster_values_on_polygon(raster_layer, polygon_geom):
+    extent = polygon_geom.boundingBox()
+    band = 1  # zakładamy pasmo 1, można parametryzować
+
+    provider = raster_layer.dataProvider()
+    block = provider.block(band, extent, int(extent.width()), int(extent.height()))
+
+    for row in range(block.height()):
+        for col in range(block.width()):
+            val = block.value(col, row)
+            if val is None or (isinstance(val, float) and isnan(val)):
+                raise ValueError("Raster contains None or NaN values within the polygon AoI.")
+            
 def minmaxheight(vlayer, dtm_layer):
     feats = filter_features_inside_raster(vlayer, dtm_layer)
     if not feats:
