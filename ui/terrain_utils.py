@@ -5,10 +5,6 @@ from math import ceil, fabs, isnan
 from pyproj import Transformer
 from ..utils import transf_coord
 
-def filter_features_inside_raster(vlayer, raster_layer):
-    r_extent: QgsRectangle = raster_layer.extent()
-    return [f for f in vlayer.getFeatures()
-            if r_extent.contains(f.geometry().boundingBox())]
 
 def create_buffer_around_line(path_line, gdal_ds, dtm_layer, buffer_value):
     gt = gdal_ds.GetGeoTransform()
@@ -40,7 +36,7 @@ def create_buffer_around_line(path_line, gdal_ds, dtm_layer, buffer_value):
 
 def check_raster_values_on_polygon(raster_layer, polygon_geom):
     extent = polygon_geom.boundingBox()
-    band = 1  # zakładamy pasmo 1, można parametryzować
+    band = 1
 
     provider = raster_layer.dataProvider()
     block = provider.block(band, extent, int(extent.width()), int(extent.height()))
@@ -51,35 +47,69 @@ def check_raster_values_on_polygon(raster_layer, polygon_geom):
             if val is None or (isinstance(val, float) and isnan(val)):
                 raise ValueError("Raster contains None or NaN values within the polygon AoI.")
             
+def is_poligon_inside_raster(vlayer, dtm_layer):
+    params_calc = {
+        'INPUT_A': dtm_layer,
+        'BAND_A': 1,
+        'FORMULA': '1',
+        'OUTPUT': 'TEMPORARY_OUTPUT',
+        'RTYPE': 0,
+        'NO_DATA': None,
+        'EXTENT': 'ignore'
+    }
+    raster_ones = processing.run("gdal:rastercalculator", params_calc)['OUTPUT']
+    
+    params_polygonize = {
+        'INPUT': raster_ones,
+        'BAND': 1,
+        'FIELD': 'DN',
+        'OUTPUT': 'TEMPORARY_OUTPUT'
+    }
+    raster_polygon = processing.run("gdal:polygonize", params_polygonize)['OUTPUT']
+    
+    raster_polygon_layer = QgsVectorLayer(raster_polygon, "raster_polygon", "ogr")
+    
+    raster_geom = None
+    for feat in raster_polygon_layer.getFeatures():
+        geom = feat.geometry()
+        raster_geom = geom if raster_geom is None else raster_geom.combine(geom)
+
+    features_outside = []
+    for f in vlayer.getFeatures():
+        if not raster_geom.contains(f.geometry()):
+            features_outside.append(f.id())
+    
+    if features_outside:
+        raise ValueError(f"Obiekty nie leżą CAŁKOWICIE wewnątrz zasięgu danych rastra")
+    
+    return list(vlayer.getFeatures())
+
 def minmaxheight(vlayer, dtm_layer):
-    feats = filter_features_inside_raster(vlayer, dtm_layer)
-    if not feats:
-        raise ValueError("No vector features lie entirely within the raster extent.")
-
-    temp = QgsVectorLayer(f"Polygon?crs={vlayer.crs().authid()}",
-                          "temp", "memory")
-    temp.dataProvider().addFeatures(feats)
-    temp.updateExtents()
-
+    features_inside = is_poligon_inside_raster(vlayer, dtm_layer)
+    temp_layer = QgsVectorLayer(f"Polygon?crs={vlayer.crs().authid()}", "temp", "memory")
+    temp_layer.dataProvider().addFeatures(features_inside)
+    
     stats = QgsZonalStatistics(
-        temp, 
+        temp_layer, 
         dtm_layer,
         "pre_",
         1,
         QgsZonalStatistics.Min | QgsZonalStatistics.Max
     )
+    
     if stats.calculateStatistics(None) != 0:
-        raise RuntimeError("Zonal statistics calculation failed.")
+        raise RuntimeError("Błąd obliczania statystyk strefowych.")
 
     gmin, gmax = None, None
-    for f in temp.getFeatures():
+    for f in temp_layer.getFeatures():
         try:
             mn, mx = float(f["pre_min"]), float(f["pre_max"])
             gmin = mn if gmin is None or mn < gmin else gmin
             gmax = mx if gmax is None or mx > gmax else gmax
-        except Exception:
+        except:
             continue
-
+    
     if gmin is None or gmax is None:
-        raise ValueError("Could not determine min/max values from raster.")
+        raise ValueError("Nie udało się określić min/max wartości z rastra.")
+    
     return gmin, gmax
