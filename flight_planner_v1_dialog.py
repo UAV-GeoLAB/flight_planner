@@ -8,7 +8,6 @@ from .utils import show_error
 from qgis.PyQt import uic
 from osgeo import gdal
 from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel, QgsCoordinateReferenceSystem
-from qgis.gui import QgsProjectionSelectionWidget
 from .ui.flight_design.altitude_type.one_altitude.run_design import run_design_one_altitude
 from .ui.flight_design.altitude_type.separate_altitude.run_design import run_design_separate_altitude
 from .ui.flight_design.altitude_type.terrain_following.run_design import run_design_terrain_following
@@ -20,6 +19,9 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+
+        self.pushButtonCancelDesign.setVisible(False)
+
         self.tabBlock = True
         self.tabCorridor = False
         self.tabWidgetBlockCorridor.currentChanged.connect(self.on_tabWidgetBlockCorridor_currentChanged)
@@ -98,6 +100,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             self.tabCorridor = True
 
     def on_pushButtonRunDesign_clicked(self):
+        self.pushButtonCancelDesign.setVisible(True)
         altitude_type = self.comboBoxAltitudeType.currentText()
 
         if altitude_type == 'One Altitude ASL For Entire Flight':
@@ -106,6 +109,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             run_design_separate_altitude(self)
         elif altitude_type == 'Terrain Following':
             run_design_terrain_following(self)
+        self.pushButtonCancelDesign.setVisible(False)
     
     def on_crs_changed(self, crs):
         self.epsg_code = crs.authid()

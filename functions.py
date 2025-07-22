@@ -19,7 +19,6 @@ from math import (
     sqrt,
     tan
 )
-from .utils import show_error 
 
 import matplotlib.path as mpltPath
 import numpy as np
