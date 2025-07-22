@@ -1,5 +1,4 @@
-from PyQt5.QtWidgets import QMessageBox
-from ..utils import show_error, show_info
+from ..utils import show_info
 
 class AltitudeSectionHandler:
     def __init__(self, dialog, camera_handler):

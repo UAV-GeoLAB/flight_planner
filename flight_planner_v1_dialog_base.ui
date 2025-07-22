@@ -449,7 +449,14 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="0" colspan="3">
+       <item row="8" column="2" alignment="Qt::AlignRight">
+        <widget class="QPushButton" name="pushButtonCancelDesign">
+        <property name="text">
+        <string>Cancel</string>
+        </property>
+        </widget>
+        </item>
+       <item row="9" column="0" colspan="3">
         <widget class="QgsCollapsibleGroupBox" name="mGroupBox">
          <property name="title">
           <string>More settings*</string>

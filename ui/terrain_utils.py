@@ -1,4 +1,4 @@
-from qgis.core import QgsRectangle, QgsVectorLayer
+from qgis.core import QgsVectorLayer
 from qgis.analysis import QgsZonalStatistics
 from qgis import processing
 from math import ceil, fabs, isnan
@@ -81,7 +81,7 @@ def is_poligon_inside_raster(vlayer, dtm_layer):
     
     if features_outside:
         raise ValueError(f"Obiekty nie leżą CAŁKOWICIE wewnątrz zasięgu danych rastra")
-    
+
     return list(vlayer.getFeatures())
 
 def minmaxheight(vlayer, dtm_layer):
