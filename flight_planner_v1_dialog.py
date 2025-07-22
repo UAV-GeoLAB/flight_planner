@@ -7,7 +7,8 @@ import os
 from .utils import show_error
 from qgis.PyQt import uic
 from osgeo import gdal
-from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel
+from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel, QgsCoordinateReferenceSystem
+from qgis.gui import QgsProjectionSelectionWidget
 from .ui.flight_design.altitude_type.one_altitude.run_design import run_design_one_altitude
 from .ui.flight_design.altitude_type.separate_altitude.run_design import run_design_separate_altitude
 from .ui.flight_design.altitude_type.terrain_following.run_design import run_design_terrain_following
@@ -17,9 +18,14 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
-        show_error("FlightPlannerPWDialog: __init__ called", level="Informative")
         super().__init__(parent)
         self.setupUi(self)
+        self.tabBlock = True
+        self.tabCorridor = False
+        self.tabWidgetBlockCorridor.currentChanged.connect(self.on_tabWidgetBlockCorridor_currentChanged)
+
+        self.epsg_code = None
+
         self.design_run_counter = 1
         
         self.camera_handler = CameraSectionHandler(self)
@@ -78,10 +84,18 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def on_mMapLayerComboBoxCorridor_layerChanged(self):
         lyr = self.mMapLayerComboBoxCorridor.currentLayer()
-        self.pathLine = lyr
+        self.CorLine = lyr
+        self.pathLine = self.CorLine.dataProvider().dataSourceUri()
         if lyr:
             self.terrain_handler.set_corridor_line(lyr)
 
+    def on_tabWidgetBlockCorridor_currentChanged(self):
+        if self.tabWidgetBlockCorridor.currentIndex() == 0:
+            self.tabBlock = True
+            self.tabCorridor = False
+        else:
+            self.tabBlock = False
+            self.tabCorridor = True
 
     def on_pushButtonRunDesign_clicked(self):
         altitude_type = self.comboBoxAltitudeType.currentText()
@@ -92,18 +106,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             run_design_separate_altitude(self)
         elif altitude_type == 'Terrain Following':
             run_design_terrain_following(self)
-
-    def get_geom_AoI(self):
-        layer = self.mMapLayerComboBoxAoI.currentLayer()
-        if not layer:
-            show_error("Nie wybrano warstwy AOI", level="Critical")
-            return None
-
-        features = list(layer.getFeatures())
-        if not features:
-            show_error("Warstwa AOI jest pusta", level="Critical")
-            return None
-
-        # Załóżmy, że interesuje nas geometria pierwszego obiektu
-        geom = features[0].geometry()
-        return geom
+    
+    def on_crs_changed(self, crs):
+        self.epsg_code = crs.authid()
+        self.crsSelector.setCrs(QgsCoordinateReferenceSystem(f"self.epsg_code"))
