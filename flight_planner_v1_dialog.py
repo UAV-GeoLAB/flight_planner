@@ -87,9 +87,11 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
     def on_mMapLayerComboBoxCorridor_layerChanged(self):
         lyr = self.mMapLayerComboBoxCorridor.currentLayer()
         self.CorLine = lyr
-        self.pathLine = self.CorLine.dataProvider().dataSourceUri()
-        if lyr:
+        if lyr is not None:
+            self.pathLine = self.CorLine.dataProvider().dataSourceUri()
             self.terrain_handler.set_corridor_line(lyr)
+        else:
+            self.pathLine = None
 
     def on_tabWidgetBlockCorridor_currentChanged(self):
         if self.tabWidgetBlockCorridor.currentIndex() == 0:
