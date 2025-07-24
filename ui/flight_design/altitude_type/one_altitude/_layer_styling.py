@@ -1,5 +1,5 @@
 import os
-from .....functions import *
+from .....functions import create_waypoints, create_flight_line, change_layer_style, add_layers_to_canvas
 
 def prepare_and_style_layers(ui, pc_lay, photo_lay):
     waypoints_layer = create_waypoints(pc_lay, ui.crs_vct)
