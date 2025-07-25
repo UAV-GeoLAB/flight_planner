@@ -24,6 +24,7 @@ def run_design_separate_altitude(ui):
         elif ui.tabCorridor:
             pc_lay, photo_lay = process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL)
 
+
     except Exception:
         ui.progressBar.setValue(0)
         traceback_error()
