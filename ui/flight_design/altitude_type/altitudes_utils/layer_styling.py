@@ -8,7 +8,7 @@ def prepare_and_style_layers(ui, pc_lay, photo_lay):
     flight_line = create_flight_line(waypoints_layer, ui.crs_vct)
     flight_line.setCrs(ui.crs_vct)
     
-    style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'flight_line_style.qml')
+    style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'flight_line_style.qml')
     flight_line.loadNamedStyle(style_path)
 
     pc_lay.startEditing()
