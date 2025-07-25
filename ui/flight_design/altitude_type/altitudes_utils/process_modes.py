@@ -1,7 +1,7 @@
 from math import atan, pi
 from qgis import processing
 from .....functions import bounding_box_at_angle, projection_centres, corridor_flight_numbering, line
-from ._annotation import annotate_segment_features
+from ..altitudes_utils._annotation import annotate_segment_features
 from .....utils import show_error
 
 def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
@@ -95,8 +95,12 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
         photo = p_nr
         segment_nr += 1
 
-    pc_lay = processing.run("native:mergevectorlayers", {'LAYERS': pc_lay_list, 'CRS': None, 'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
-    photo_lay = processing.run("native:mergevectorlayers", {'LAYERS': photo_lay_list, 'CRS': None, 'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
+    pc_lay = processing.run("native:mergevectorlayers",
+                            {'LAYERS': pc_lay_list,
+                             'CRS': None, 'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
+    photo_lay = processing.run("native:mergevectorlayers",
+                               {'LAYERS': photo_lay_list,
+                                'CRS': None, 'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
     pc_lay.setCrs(ui.crs_vct)
     photo_lay.setCrs(ui.crs_vct)
     return pc_lay, photo_lay

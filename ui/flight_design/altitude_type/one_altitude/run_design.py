@@ -1,12 +1,12 @@
-from .....utils import show_error, show_info, traceback_error
+from .....utils import traceback_error
 from .....functions import *
-from ._inputs_validation import validate_inputs
-from ._initialization import initialize_crs_and_progressbar
-from ._flight_parameters import calculate_flight_parameters
-from ._altitude_calculation import calculate_altitude
-from ._process_modes import process_block_mode, process_corridor_mode
-from ._enrichments import enrich_projection_centres_with_agl
-from ._layer_styling import prepare_and_style_layers
+from ..altitudes_utils.inputs_validation import validate_inputs
+from ..altitudes_utils.initialization import initialize_crs_and_progressbar
+from ..altitudes_utils.flight_parameters import calculate_flight_parameters
+from ..altitudes_utils.altitude_calculation import calculate_altitude
+from ..altitudes_utils.process_modes import process_block_mode, process_corridor_mode
+from ..altitudes_utils.enrichments import enrich_projection_centres_with_agl
+from ..altitudes_utils.layer_styling import prepare_and_style_layers
 
 def run_design_one_altitude(ui):
     ui.pushButtonRunDesign.setEnabled(False)
