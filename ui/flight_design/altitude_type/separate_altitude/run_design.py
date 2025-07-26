@@ -16,15 +16,40 @@ def run_design_separate_altitude(ui):
 
         initialize_crs_and_progressbar(ui)
 
-        altitude_ASL = calculate_altitude(ui)
+        altitude_ASL, altitude_AGL = calculate_altitude(ui)
         Bx, By, len_along, len_across = calculate_flight_parameters(ui)
 
         if ui.tabBlock:
-            pc_lay, photo_lay = process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL)
+            pc_lay, photo_lay, theta, dist = process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL)
         elif ui.tabCorridor:
-            pc_lay, photo_lay = process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL)
+            pc_lay, photo_lay, theta, dist = process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL)
 
-
+        if ui.tabCorridor:
+            ui.startWorker_updateAltitude(
+                pointLayer=pc_lay,
+                polygonLayer=photo_lay,
+                DTM=ui.DTM,
+                altitude_AGL=altitude_AGL,
+                crsVectorLayer=ui.crs_vct,
+                crsRasterLayer=ui.crs_rst,
+                tabWidg=ui.tabCorridor,
+                LineRangeList=ui.line_buf_list,
+                theta=theta,
+                distance=dist
+            )
+        else:
+            ui.startWorker_updateAltitude(
+                pointLayer=pc_lay,
+                polygonLayer=photo_lay,
+                DTM=ui.DTM,
+                altitude_AGL=altitude_AGL,
+                crsVectorLayer=ui.crs_vct,
+                crsRasterLayer=ui.crs_rst,
+                tabWidg=ui.tabCorridor,
+                Range=ui.geom_AoI,
+                theta=theta,
+                distance=dist
+            )
     except Exception:
         ui.progressBar.setValue(0)
         traceback_error()

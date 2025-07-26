@@ -10,4 +10,4 @@ def calculate_altitude(ui):
         altitude_AGL = ui.doubleSpinBoxAltAGL.value()
 
     ui.progressBar.setValue(20)
-    return avg_terrain_height + altitude_AGL
+    return avg_terrain_height + altitude_AGL, altitude_AGL

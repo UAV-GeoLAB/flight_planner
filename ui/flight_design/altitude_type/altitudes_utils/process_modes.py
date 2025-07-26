@@ -1,7 +1,7 @@
-from math import atan, pi
+from math import atan, pi, fabs, sqrt, atan2
 from qgis import processing
 from .....functions import bounding_box_at_angle, projection_centres, corridor_flight_numbering, line
-from ..altitudes_utils._annotation import annotate_segment_features
+from ._annotation import annotate_segment_features
 from .....utils import show_error
 
 def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
@@ -25,7 +25,9 @@ def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     )
     pc_lay.setCrs(ui.crs_vct)
     photo_lay.setCrs(ui.crs_vct)
-    return pc_lay, photo_lay
+    theta = fabs(atan2(len_across / 2, len_along / 2))
+    dist = sqrt((len_along / 2) ** 2 + (len_across / 2) ** 2)
+    return pc_lay, photo_lay, theta, dist
 
 def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     if ui.CorLine and ui.CorLine.crs().isValid():
@@ -103,4 +105,6 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
                                 'CRS': None, 'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
     pc_lay.setCrs(ui.crs_vct)
     photo_lay.setCrs(ui.crs_vct)
-    return pc_lay, photo_lay
+    theta = fabs(atan2(len_across / 2, len_along / 2))
+    dist = sqrt((len_along / 2) ** 2 + (len_across / 2) ** 2)
+    return pc_lay, photo_lay, theta, dist

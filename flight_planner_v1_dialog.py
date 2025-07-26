@@ -11,6 +11,12 @@ from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel, QgsCoordinateRe
 from .ui.flight_design.altitude_type.one_altitude.run_design import run_design_one_altitude
 from .ui.flight_design.altitude_type.separate_altitude.run_design import run_design_separate_altitude
 from .ui.flight_design.altitude_type.terrain_following.run_design import run_design_terrain_following
+from PyQt5.QtCore import QThread
+from .ui.flight_design.altitude_type.separate_altitude.worker import Worker
+from PyQt5 import QtWidgets
+from qgis.core import QgsProject, QgsMessageLog, Qgis
+from .functions import add_layers_to_canvas
+
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'flight_planner_v1_dialog_base.ui'))
@@ -61,6 +67,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.mMapLayerComboBoxAoI.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.mMapLayerComboBoxCorridor.setFilters(QgsMapLayerProxyModel.LineLayer)
         
+        self.pushButtonCancelDesign.clicked.connect(self.on_pushButtonCancelDesign_clicked)
         self._init_default_layers()
     
     def _init_default_layers(self):
@@ -82,6 +89,10 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         lyr = self.mMapLayerComboBoxAoI.currentLayer()
         self.AreaOfInterest = lyr
         if lyr:
+            features = lyr.getFeatures()
+            for feature in features:
+                self.geom_AoI = feature.geometry()
+                break
             self.terrain_handler.set_aoi(lyr)
 
     def on_mMapLayerComboBoxCorridor_layerChanged(self):
@@ -116,3 +127,40 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
     def on_crs_changed(self, crs):
         self.epsg_code = crs.authid()
         self.crsSelector.setCrs(QgsCoordinateReferenceSystem(f"self.epsg_code"))
+
+    def startWorker_updateAltitude(self, **params):
+        worker = Worker(**params)
+        thread = QThread(self)
+        worker.moveToThread(thread)
+
+        worker.finished.connect(self.workerFinished)
+        worker.error.connect(self.workerError)
+        worker.progress.connect(self.progressBar.setValue)
+        worker.enabled.connect(self.pushButtonRunDesign.setEnabled)
+        worker.enabled.connect(self.pushButtonRunControl.setEnabled)
+
+        thread.started.connect(worker.run_altitudeStrip)
+        
+        thread.start()
+        self.thread = thread
+        self.worker = worker
+
+    def workerFinished(self, result, group_name):
+        self.worker.deleteLater()
+        self.thread.quit()
+        self.thread.wait()
+        self.thread.deleteLater()
+
+        if result is not None:
+            if group_name == 'flight_design':
+                add_layers_to_canvas(result, group_name, self.design_run_counter)
+                self.design_run_counter += 1
+
+    def workerError(self, exception, traceback_str):
+        QgsMessageLog.logMessage(str(exception), 'Flight Planner', Qgis.Critical)
+        QgsMessageLog.logMessage(traceback_str, 'Flight Planner', Qgis.Critical)
+        self.pushButtonRunDesign.setEnabled(True)
+
+    def on_pushButtonCancelDesign_clicked(self):
+        if hasattr(self, "worker") and self.worker:
+            self.worker.killed = True
