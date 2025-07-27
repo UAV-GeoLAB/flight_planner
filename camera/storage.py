@@ -1,6 +1,6 @@
 import json
 import os
-from ..utils import traceback_error
+from ..utils import QgsTraceback
 from .models import Camera
 
 FILE_PATH = os.path.join(os.path.dirname(__file__), 'cameras.json')
@@ -26,7 +26,7 @@ def save_camera(camera: Camera):
         with open(FILE_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4)
     except Exception:
-        traceback_error()
+        QgsTraceback()
 
 def add_new_camera(name, focal_length, sensor_size, pix_along, pix_across):
     camera = Camera(name, focal_length, sensor_size, pix_along, pix_across)
@@ -41,7 +41,7 @@ def delete_camera(camera: Camera):
         with open(FILE_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4)
     except Exception:
-        traceback_error()
+        QgsTraceback()
 
 
 def load_cameras():
@@ -51,5 +51,5 @@ def load_cameras():
             if data:
                 return [Camera(**c) for c in json.loads(data)]
     except Exception:
-        traceback_error()
+        QgsTraceback()
     return []

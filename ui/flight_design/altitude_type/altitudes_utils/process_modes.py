@@ -2,7 +2,10 @@ from math import atan, pi, fabs, sqrt, atan2
 from qgis import processing
 from .....functions import bounding_box_at_angle, projection_centres, corridor_flight_numbering, line
 from ._annotation import annotate_segment_features
-from .....utils import show_error
+from .....utils import QgsPrint
+from qgis.core import QgsField
+from PyQt5.QtCore import QVariant
+
 
 def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     if not ui.AreaOfInterest.crs().isValid():
@@ -69,7 +72,7 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
             x_start, y_start = coords[0].x(), coords[0].y()
             x_end, y_end = coords[1].x(), coords[1].y()
         except IndexError as e:
-            show_error(f"Błąd indeksu: {e} - coords: {coords}")
+            QgsPrint(f"Błąd indeksu: {e} - coords: {coords}")
             continue
 
         a_line, _ = line(y_start, y_end, x_start, x_end)
@@ -89,6 +92,9 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
             Bx, By, len_along, len_across, ui.spinBoxExceedExtremeStrips.value(), ui.spinBoxMultipleBase.value(),
             altitude_ASL, strip, photo
         )
+        pc_lay.startEditing()
+        photo_lay.startEditing()
+        pc_lay.addAttribute(QgsField("BuffNr", QVariant.Int))
 
         annotate_segment_features(pc_lay, photo_lay, ordered_segments[f'segment_{segment_nr}'], segment_nr)
         pc_lay_list.append(pc_lay)
@@ -107,4 +113,4 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     photo_lay.setCrs(ui.crs_vct)
     theta = fabs(atan2(len_across / 2, len_along / 2))
     dist = sqrt((len_along / 2) ** 2 + (len_across / 2) ** 2)
-    return pc_lay, photo_lay, theta, dist
+    return pc_lay, photo_lay, line_buf_list, theta, dist

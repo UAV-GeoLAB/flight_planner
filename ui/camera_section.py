@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QInputDialog
 from PyQt5.QtCore import pyqtSlot
 from ..camera.models import Camera
 from ..camera.storage import delete_camera, load_cameras, add_new_camera
-from ..utils import show_info
+from ..utils import QgsMessBox
 
 class CameraSectionHandler:
     def __init__(self, dialog):
@@ -89,7 +89,7 @@ class CameraSectionHandler:
             self.dialog.comboBoxCamera.setCurrentText(new_camera.name)
             self.on_camera_selected(self.dialog.comboBoxCamera.currentIndex())
         except Exception:
-            show_info(title='Error', text='Saving camera failed', level='Critical')
+            QgsMessBox(title='Error', text='Saving camera failed', level='Critical')
 
     @pyqtSlot()
     def on_delete_camera(self):
@@ -97,7 +97,7 @@ class CameraSectionHandler:
             name = self.dialog.comboBoxCamera.currentText()
             cam = next((c for c in self.cameras if c.name == name), None)
             if not cam:
-                show_info(title="Cannot delete", text="This camera is not deletable.", level="Information")
+                QgsMessBox(title="Cannot delete", text="This camera is not deletable.", level="Information")
                 return
 
             delete_camera(cam)
@@ -113,7 +113,7 @@ class CameraSectionHandler:
                 self.dialog.comboBoxCamera.setCurrentIndex(0)
                 self.on_camera_selected(0)
         except Exception:
-            show_info(title='Error', text='Deleting camera failed', level='Critical')
+            QgsMessBox(title='Error', text='Deleting camera failed', level='Critical')
 
     def _enable_camera_fields(self, enable: bool):
         self.dialog.doubleSpinBoxFocalLength.setEnabled(enable)

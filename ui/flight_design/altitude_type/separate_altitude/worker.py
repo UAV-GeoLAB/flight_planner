@@ -1,5 +1,5 @@
 import os
-from .....utils import traceback_error, show_error
+from .....utils import QgsTraceback, QgsPrint
 import numpy as np
 from PyQt5.QtCore import QObject, pyqtSignal
 from qgis.core import (
@@ -42,6 +42,7 @@ class Worker(QObject):
         self.geom_aoi = data.get('Range')
         self.theta = data.get('theta')
         self.dist = data.get('distance')
+        self.start_progress = data.get('start_progress', 0)
         self.killed = False
 
     def run_altitudeStrip(self):
@@ -59,7 +60,8 @@ class Worker(QObject):
 
             for t in range(1, strips_count + 1):
                 if self.killed:
-                    break
+                    self.handle_cancel()
+                    return
 
                 strip_nr = f"{t:04d}"
                 feats = self.layer.getFeatures(f'"Strip" = \'{strip_nr}\'')
@@ -68,6 +70,9 @@ class Worker(QObject):
                 BuffNr = None
 
                 for f in feats:
+                    if self.killed:
+                        self.handle_cancel()
+                        return
                     num = int(f.attribute('Photo Number'))
                     nrP_max = max(nrP_max, num)
                     nrP_min = min(nrP_min, num)
@@ -111,8 +116,14 @@ class Worker(QObject):
 
                 if self.tab_widg_cor:
                     common = g_strip.intersection(self.g_line_list[BuffNr - 1])
+                    if common.isEmpty():
+                        QgsPrint(f"Strip {t}: Intersection with g_line_list[{BuffNr - 1}] is empty, używam g_strip zamiast intersection.")
+                        common = g_strip
                 else:
                     common = g_strip.intersection(self.geom_aoi)
+                    if common.isEmpty():
+                        QgsPrint(f"Strip {t}: Intersection with geom_aoi is empty, używam g_strip zamiast intersection.")
+                        common = g_strip
 
                 feat_strip.setGeometry(common)
                 common_lay = QgsVectorLayer("Polygon?crs=" + str(self.crs_vct), "row", "memory")
@@ -125,6 +136,9 @@ class Worker(QObject):
 
                 self.layer.startEditing()
                 for k in range(nrP_min, nrP_max + 1):
+                    if self.killed:
+                        self.handle_cancel()
+                        return
                     photo_nr = f"{k:05d}"
                     ph_nr_iter = self.layer.getFeatures(f'"Photo Number" = \'{photo_nr}\'')
                     for f in ph_nr_iter:
@@ -144,7 +158,8 @@ class Worker(QObject):
 
                 progress_c += 1
                 if step == 0 or progress_c % step == 0:
-                    self.progress.emit(int(progress_c / strips_count * 100))
+                    progress_value = self.start_progress + int(progress_c / strips_count * (100 - self.start_progress))
+                    self.progress.emit(progress_value)
 
             waypoints_layer = create_waypoints(self.layer, self.crs_vct)
             waypoints_layer.setCrs(self.crs_vct)
@@ -177,9 +192,17 @@ class Worker(QObject):
                 self.layer.setCrs(self.crs_vct)
 
                 result.extend([self.layer, flight_line, waypoints_layer, self.layer_pol])
-        except Exception:
-            self.progressBar.setValue(0)
-            traceback_error()
-
+        except Exception as e:
+            import traceback
+            self.error.emit(e, traceback.format_exc())
+            self.progress.emit(0)
+            self.enabled.emit(True)
+            return
+            
         self.finished.emit(result, "flight_design")
         self.enabled.emit(True)
+
+    def handle_cancel(self):
+        self.progress.emit(0)
+        self.enabled.emit(True)
+        self.finished.emit(None, "flight_design")

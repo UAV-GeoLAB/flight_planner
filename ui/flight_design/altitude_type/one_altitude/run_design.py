@@ -1,4 +1,4 @@
-from .....utils import traceback_error
+from .....utils import QgsTraceback
 from .....functions import *
 from ..altitudes_utils.inputs_validation import validate_inputs
 from ..altitudes_utils.initialization import initialize_crs_and_progressbar
@@ -29,6 +29,6 @@ def run_design_one_altitude(ui):
 
     except Exception:
         ui.progressBar.setValue(0)
-        traceback_error()
+        QgsTraceback()
     finally:
         ui.pushButtonRunDesign.setEnabled(True)

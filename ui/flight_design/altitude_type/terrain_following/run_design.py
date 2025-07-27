@@ -1,5 +1,5 @@
-from .....utils import show_error
+from .....utils import QgsPrint
 
 def run_design_terrain_following(ui):
     """RunDesign logic for 'Terrain Following'."""
-    show_error("Terrain Following")
+    QgsPrint("Terrain Following")

@@ -4,7 +4,7 @@ from .ui.altitude_section import AltitudeSectionHandler
 from .ui.terrain_section import TerrainSectionHandler
 from .ui.direction_section import DirectionSectionHandler
 import os
-from .utils import show_error
+from .utils import QgsPrint
 from qgis.PyQt import uic
 from osgeo import gdal
 from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel, QgsCoordinateReferenceSystem
@@ -83,7 +83,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.raster = gdal.Open(lyr.source())
                 self.terrain_handler.set_dtm(lyr, self.raster)
             except Exception as e:
-                show_error("Error loading DTM: {e}", "Critical")
+                QgsPrint("Error loading DTM: {e}", "Critical")
 
     def on_mMapLayerComboBoxAoI_layerChanged(self):
         lyr = self.mMapLayerComboBoxAoI.currentLayer()
@@ -122,13 +122,17 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             run_design_separate_altitude(self)
         elif altitude_type == 'Terrain Following':
             run_design_terrain_following(self)
-        self.pushButtonCancelDesign.setVisible(False)
     
     def on_crs_changed(self, crs):
         self.epsg_code = crs.authid()
         self.crsSelector.setCrs(QgsCoordinateReferenceSystem(f"self.epsg_code"))
 
     def startWorker_updateAltitude(self, **params):
+        self.pushButtonRunDesign.setEnabled(False)
+
+        current_progress = self.progressBar.value()
+        params["start_progress"] = current_progress
+
         worker = Worker(**params)
         thread = QThread(self)
         worker.moveToThread(thread)
@@ -138,6 +142,9 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         worker.progress.connect(self.progressBar.setValue)
         worker.enabled.connect(self.pushButtonRunDesign.setEnabled)
         worker.enabled.connect(self.pushButtonRunControl.setEnabled)
+
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
 
         thread.started.connect(worker.run_altitudeStrip)
         
@@ -155,6 +162,9 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             if group_name == 'flight_design':
                 add_layers_to_canvas(result, group_name, self.design_run_counter)
                 self.design_run_counter += 1
+
+        self.pushButtonRunDesign.setEnabled(True)
+        self.pushButtonCancelDesign.setVisible(False)
 
     def workerError(self, exception, traceback_str):
         QgsMessageLog.logMessage(str(exception), 'Flight Planner', Qgis.Critical)

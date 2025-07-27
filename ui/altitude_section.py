@@ -1,4 +1,4 @@
-from ..utils import show_info
+from ..utils import QgsMessBox
 
 class AltitudeSectionHandler:
     def __init__(self, dialog, camera_handler):
@@ -117,7 +117,7 @@ class AltitudeSectionHandler:
 
         if text in ['Separate Altitude ASL For Each Strip', 'Terrain Following'] \
            and not self.dialog.mMapLayerComboBoxDTM.currentLayer():
-            show_info(title='DTM needed', text='You must select DTM to run this option.', level="Warning")
+            QgsMessBox(title='DTM needed', text='You must select DTM to run this option.', level="Warning")
             return
 
         self._enable_more_settings_groupbox(text == 'One Altitude ASL For Entire Flight')

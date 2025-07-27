@@ -1,7 +1,7 @@
 from qgis.core import QgsRasterLayer, QgsVectorLayer
 from PyQt5.QtCore import pyqtSlot
 
-from ..utils import show_info
+from ..utils import QgsMessBox
 from .terrain_utils import create_buffer_around_line, minmaxheight
 
 
@@ -27,17 +27,17 @@ class TerrainSectionHandler:
     @pyqtSlot()
     def on_btn_get_heights_clicked(self):
         if self.dtm is None:
-            show_info(title="DTM needed", text="You have to load a valid DTM layer.", level="Critical")
+            QgsMessBox(title="DTM needed", text="You have to load a valid DTM layer.", level="Critical")
             return
 
         if self.dlg.tabBlock:
             if self.aoi is None:
-                show_info(title="AoI needed", text="You have to load Area-of-Interest layer.", level="Critical")
+                QgsMessBox(title="AoI needed", text="You have to load Area-of-Interest layer.", level="Critical")
                 return
             vector_for_stats = self.aoi
         else:
             if self.path_line is None:
-                show_info(title="Corridor line needed", text="You have to load Corridor line layer.", level="Critical")
+                QgsMessBox(title="Corridor line needed", text="You have to load Corridor line layer.", level="Critical")
                 return
             try:
                 vector_for_stats, min_buf = create_buffer_around_line(
@@ -48,7 +48,7 @@ class TerrainSectionHandler:
                 )
                 self.dlg.doubleSpinBoxBuffer.setMinimum(min_buf / 2)
             except Exception as e:
-                show_info(title="Buffer creation failed", text=str(e), level="Critical")
+                QgsMessBox(title="Buffer creation failed", text=str(e), level="Critical")
                 return
 
         try:
@@ -56,4 +56,4 @@ class TerrainSectionHandler:
             self.dlg.doubleSpinBoxMinHeight.setValue(h_min)
             self.dlg.doubleSpinBoxMaxHeight.setValue(h_max)
         except Exception as e:
-            show_info(title="Error", text=f"Failed to get heights from DTM:\n{e}", level="Critical")
+            QgsMessBox(title="Error", text=f"Failed to get heights from DTM:\n{e}", level="Critical")
