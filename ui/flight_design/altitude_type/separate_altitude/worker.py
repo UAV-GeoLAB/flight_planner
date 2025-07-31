@@ -53,6 +53,10 @@ class Worker(QObject):
             step = int(strips_count // 1000)
             feat_strip = QgsFeature()
 
+            if (self.crs_rst is None or not self.crs_rst.isValid() or self.crs_rst.isGeographic() or
+                self.crs_vct is None or not self.crs_vct.isValid() or self.crs_vct.isGeographic()):
+                raise ValueError("CRS must be valid (not geographic).")
+            
             if self.crs_rst != self.crs_vct:
                 transf_vct_rst = Transformer.from_crs(
                     self.crs_vct, self.crs_rst, always_xy=True
