@@ -37,12 +37,18 @@ from qgis.core import (
 )
 
 
-def add_layers_to_canvas(layers, group_name, counter=1):
-    """Add grouped layers to the canvas"""
+def add_to_canvas(layers, group_name, counter=1):
     root = QgsProject.instance().layerTreeRoot()
     group = root.insertGroup(0, f"{group_name}_{counter}")
-    QgsProject.instance().addMapLayers(layers, False)
-    for layer in layers:
+
+    if isinstance(layers, list):
+        QgsProject.instance().addMapLayers(layers, False)
+        iterable_layers = layers
+    else:
+        QgsProject.instance().addMapLayer(layers)
+        iterable_layers = [layers]
+
+    for layer in iterable_layers:
         layer.setName(layer.name() + f"_{counter}")
         group.addLayer(layer)
 
