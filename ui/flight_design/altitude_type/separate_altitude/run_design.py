@@ -21,32 +21,24 @@ def run_design_separate_altitude(ui):
         elif ui.tabCorridor:
             pc_lay, photo_lay, line_buf_list, theta, dist = process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL)
 
+        params = dict(
+            pointLayer=pc_lay,
+            polygonLayer=photo_lay,
+            DTM=ui.DTM,
+            altitude_AGL=altitude_AGL,
+            crsVectorLayer=ui.crs_vct,
+            crsRasterLayer=ui.crs_rst,
+            tabWidg=ui.tabCorridor,
+            theta=theta,
+            distance=dist
+        )
+
         if ui.tabCorridor:
-            ui.startWorker_updateAltitude(
-                pointLayer=pc_lay,
-                polygonLayer=photo_lay,
-                DTM=ui.DTM,
-                altitude_AGL=altitude_AGL,
-                crsVectorLayer=ui.crs_vct,
-                crsRasterLayer=ui.crs_rst,
-                tabWidg=ui.tabCorridor,
-                LineRangeList=line_buf_list,
-                theta=theta,
-                distance=dist
-            )
+            params['LineRangeList'] = line_buf_list
         else:
-            ui.startWorker_updateAltitude(
-                pointLayer=pc_lay,
-                polygonLayer=photo_lay,
-                DTM=ui.DTM,
-                altitude_AGL=altitude_AGL,
-                crsVectorLayer=ui.crs_vct,
-                crsRasterLayer=ui.crs_rst,
-                tabWidg=ui.tabCorridor,
-                Range=ui.geom_AoI,
-                theta=theta,
-                distance=dist
-            )
+            params['Range'] = ui.geom_AoI
+
+        ui.startWorker_updateAltitude(**params)
     except Exception:
         ui.progressBar.setValue(0)
         QgsTraceback()
