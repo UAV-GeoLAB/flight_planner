@@ -6,7 +6,7 @@ def initialize_crs_and_progressbar(ui):
         ui.crs_rst = ui.DTM.crs()
     else:
         ui.crs_rst = QgsCoordinateReferenceSystem(ui.epsg_code)
-        QgsMessBox('DTM CRS', f'Your DTM did not have CRS. {ui.epsg_code} set.')
+        QgsMessBox('DTM CRS Error', f'Your DTM did not have CRS. {ui.epsg_code} set.')
 
     ui.pushButtonRunDesign.setEnabled(False)
     ui.progressBar.setValue(0)
