@@ -1,6 +1,7 @@
 import traceback
 from qgis.core import QgsMessageLog, Qgis
 from qgis.PyQt.QtWidgets import QMessageBox
+import re
 
 
 def QgsTraceback():
@@ -34,3 +35,14 @@ def transf_coord(transformer, x, y):
     """Transform coordinates between two CRS."""
     x_transformed, y_transformed = transformer.transform(x, y)
     return x_transformed, y_transformed
+
+def find_matching_field(layer, pattern):
+    def normalize(name):
+        return re.sub(r'[^a-z]', '', name.lower())
+
+    norm_pattern = normalize(pattern)
+    for field in layer.fields():
+        norm_name = normalize(field.name())
+        if norm_name.startswith(norm_pattern):
+            return field.name()
+    return None
