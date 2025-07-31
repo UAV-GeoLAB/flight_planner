@@ -22,7 +22,7 @@ def run_design_one_altitude(ui):
         if ui.tabBlock:
             pc_lay, photo_lay, _, _ = process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL)
         elif ui.tabCorridor:
-            pc_lay, photo_lay, _, _ = process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL)
+            pc_lay, photo_lay, _, _, _ = process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL)
 
         enrich_projection_centres_with_agl(ui, pc_lay)
         prepare_and_style_layers(ui, pc_lay, photo_lay)
