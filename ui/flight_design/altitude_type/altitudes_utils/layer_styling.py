@@ -1,5 +1,5 @@
 import os
-from .....functions import create_waypoints, create_flight_line, change_layer_style, add_layers_to_canvas
+from .....functions import create_waypoints, create_flight_line, change_layer_style, add_to_canvas
 
 def prepare_and_style_layers(ui, pc_lay, photo_lay):
     waypoints_layer = create_waypoints(pc_lay, ui.crs_vct)
@@ -25,6 +25,6 @@ def prepare_and_style_layers(ui, pc_lay, photo_lay):
     photo_lay.setName('photos')
     pc_lay.setName('projection centres')
 
-    add_layers_to_canvas([pc_lay, flight_line, waypoints_layer, photo_lay], "flight_design", ui.design_run_counter)
+    add_to_canvas([pc_lay, flight_line, waypoints_layer, photo_lay], "flight_design", ui.design_run_counter)
     ui.design_run_counter += 1
     ui.progressBar.setValue(100)

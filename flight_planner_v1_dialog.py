@@ -15,7 +15,7 @@ from PyQt5.QtCore import QThread
 from .ui.flight_design.altitude_type.separate_altitude.worker import Worker
 from PyQt5 import QtWidgets
 from qgis.core import QgsProject, QgsMessageLog, Qgis
-from .functions import add_layers_to_canvas
+from .functions import add_to_canvas
 from .ui.quality_control.worker import Worker as QCWorker
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -190,7 +190,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
 
         if result is not None:
             if group_name == 'flight_design':
-                add_layers_to_canvas(result, group_name, self.design_run_counter)
+                add_to_canvas(result, group_name, self.design_run_counter)
                 self.design_run_counter += 1
 
         self.pushButtonRunDesign.setEnabled(True)
@@ -314,7 +314,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.thread_control.deleteLater()
 
         if result is not None and group_name == "quality_control":
-            add_layers_to_canvas(result, group_name, self.control_run_counter)
+            add_to_canvas(result, group_name, self.control_run_counter)
             self.control_run_counter += 1
 
         self.pushButtonRunControl.setEnabled(True)
