@@ -206,7 +206,7 @@
    <item row="6" column="0" colspan="5">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabFlightDesign">
       <attribute name="title">
@@ -826,7 +826,7 @@ min and max terrain's height</string>
         </widget>
        </item>
        <item row="7" column="2">
-        <widget class="QPushButton" name="pushButtonStopControl">
+        <widget class="QPushButton" name="pushButtonCancelControl">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -837,7 +837,7 @@ min and max terrain's height</string>
           <enum>Qt::RightToLeft</enum>
          </property>
          <property name="text">
-          <string>Stop</string>
+          <string>Cancel</string>
          </property>
         </widget>
        </item>
@@ -869,7 +869,7 @@ min and max terrain's height</string>
       <zorder>pushButtonRunControl</zorder>
       <zorder>mMapLayerComboBoxProjectionCentres</zorder>
       <zorder>labelAltitudeAbove</zorder>
-      <zorder>pushButtonStopControl</zorder>
+      <zorder>pushButtonCancelControl</zorder>
      </widget>
     </widget>
    </item>

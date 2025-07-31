@@ -3,7 +3,7 @@ from qgis.analysis import QgsZonalStatistics
 from qgis import processing
 from math import ceil, fabs, isnan
 from pyproj import Transformer
-from ..utils import transf_coord
+from ..utils import transf_coord, QgsMessBox
 
 
 def create_buffer_around_line(path_line, gdal_ds, dtm_layer, buffer_value):
@@ -80,7 +80,9 @@ def is_poligon_inside_raster(vlayer, dtm_layer):
             features_outside.append(f.id())
     
     if features_outside:
-        raise ValueError(f"Obiekty nie leżą CAŁKOWICIE wewnątrz zasięgu danych rastra")
+        message = "AoI does not lie entirely\nwithin the extent of the DTM data."
+        QgsMessBox(title="AoI not in DTM", text=message, level="Critical")
+        raise ValueError(message)
 
     return list(vlayer.getFeatures())
 

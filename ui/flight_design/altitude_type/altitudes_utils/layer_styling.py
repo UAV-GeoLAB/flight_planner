@@ -1,12 +1,13 @@
 import os
 from .....functions import create_waypoints, create_flight_line, change_layer_style, add_to_canvas
+from qgis.core import QgsCoordinateReferenceSystem
 
 def prepare_and_style_layers(ui, pc_lay, photo_lay):
     waypoints_layer = create_waypoints(pc_lay, ui.crs_vct)
-    waypoints_layer.setCrs(ui.crs_vct)
+    waypoints_layer.setCrs(QgsCoordinateReferenceSystem(ui.epsg_code)) # Transform
 
     flight_line = create_flight_line(waypoints_layer, ui.crs_vct)
-    flight_line.setCrs(ui.crs_vct)
+    flight_line.setCrs(QgsCoordinateReferenceSystem(ui.epsg_code)) # Transform
     
     style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'flight_line_style.qml')
     flight_line.loadNamedStyle(style_path)

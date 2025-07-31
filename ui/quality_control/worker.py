@@ -37,3 +37,8 @@ class Worker(QObject):
 
     def run_control(self):
         process_quality_control(self)
+
+    def handle_cancel(self):
+        self.progress.emit(0)
+        self.enabled.emit(True)
+        self.finished.emit(None, "quality_control")

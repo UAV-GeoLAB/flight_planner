@@ -36,13 +36,14 @@ def transf_coord(transformer, x, y):
     x_transformed, y_transformed = transformer.transform(x, y)
     return x_transformed, y_transformed
 
-def find_matching_field(layer, pattern):
+def find_matching_field(layer, patterns):
     def normalize(name):
         return re.sub(r'[^a-z]', '', name.lower())
 
-    norm_pattern = normalize(pattern)
+    norm_patterns = [normalize(p) for p in patterns]
+
     for field in layer.fields():
         norm_name = normalize(field.name())
-        if norm_name.startswith(norm_pattern):
+        if all(p in norm_name for p in norm_patterns):
             return field.name()
     return None

@@ -19,6 +19,10 @@ def process_overlap(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xre
     geo = [ulx_fp, xres, 0, uly_fp, 0, yres]
 
     for gsd_array, overlay_array, geot in ds_list:
+        if worker.killed:
+            worker.handle_cancel()
+            return None
+        
         c, r = crs2pixel(geo, geot[0] + xres / 2, geot[3] + yres / 2)
         c, r = int(c), int(r)
         rows, cols = overlay_array.shape

@@ -58,7 +58,8 @@ def process_footprints(worker):
 
     for feature in features:
         if worker.killed:
-            break
+            worker.handle_cancel()
+            return None
 
         Xs = feature.geometry().asPoint().x()
         Ys = feature.geometry().asPoint().y()

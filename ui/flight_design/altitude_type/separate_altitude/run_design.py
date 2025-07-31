@@ -5,6 +5,7 @@ from ..altitudes_utils.initialization import initialize_crs_and_progressbar
 from ..altitudes_utils.flight_parameters import calculate_flight_parameters
 from ..altitudes_utils.altitude_calculation import calculate_altitude
 from ..altitudes_utils.process_modes import process_block_mode, process_corridor_mode
+from ....terrain_utils import is_poligon_inside_raster
 
 def run_design_separate_altitude(ui):
     try:
@@ -12,6 +13,10 @@ def run_design_separate_altitude(ui):
             return
 
         initialize_crs_and_progressbar(ui)
+        if ui.tabBlock:
+            is_poligon_inside_raster(ui.AreaOfInterest, ui.DTM)
+        elif ui.tabCorridro:
+            is_poligon_inside_raster(ui.pathLine, ui.DTM)
 
         altitude_ASL, altitude_AGL = calculate_altitude(ui)
         Bx, By, len_along, len_across = calculate_flight_parameters(ui)
@@ -41,4 +46,6 @@ def run_design_separate_altitude(ui):
         ui.startWorker_updateAltitude(**params)
     except Exception:
         ui.progressBar.setValue(0)
+        ui.pushButtonCancelDesign.setVisible(False)
+        ui.pushButtonRunDesign.setEnabled(True)
         QgsTraceback()

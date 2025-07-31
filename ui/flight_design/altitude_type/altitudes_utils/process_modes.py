@@ -2,16 +2,18 @@ from math import atan, pi, fabs, sqrt, atan2
 from qgis import processing
 from .....functions import bounding_box_at_angle, projection_centres, corridor_flight_numbering, line
 from ._annotation import annotate_segment_features
-from .....utils import QgsPrint
-from qgis.core import QgsField
+from .....utils import QgsPrint, QgsMessBox
+from qgis.core import QgsField, QgsCoordinateReferenceSystem
 from PyQt5.QtCore import QVariant
 
 
 def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
-    if not ui.AreaOfInterest.crs().isValid():
-        raise ValueError("AoI has no valid CRS.")
-
-    ui.crs_vct = ui.AreaOfInterest.crs()
+    if ui.AreaOfInterest and ui.AreaOfInterest.crs().isValid():
+        ui.crs_vct = ui.AreaOfInterest.crs()
+    else:
+        ui.crs_rst = QgsCoordinateReferenceSystem(ui.epsg_code)
+        QgsMessBox('AoI CRS Error', f'Your AoI has no valid CRS.\n{ui.epsg_code} set.')
+    
     feature = list(ui.AreaOfInterest.getFeatures())[0]
     ui.aoi_geom = feature.geometry()
 
@@ -26,8 +28,8 @@ def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
         ui.spinBoxExceedExtremeStrips.value(),
         ui.spinBoxMultipleBase.value(), altitude_ASL, 0, 0
     )
-    pc_lay.setCrs(ui.crs_vct)
-    photo_lay.setCrs(ui.crs_vct)
+    pc_lay.setCrs(QgsCoordinateReferenceSystem(ui.epsg_code))
+    photo_lay.setCrs(QgsCoordinateReferenceSystem(ui.epsg_code))
     theta = fabs(atan2(len_across / 2, len_along / 2))
     dist = sqrt((len_along / 2) ** 2 + (len_across / 2) ** 2)
     return pc_lay, photo_lay, theta, dist
@@ -36,7 +38,8 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     if ui.CorLine and ui.CorLine.crs().isValid():
         ui.crs_vct = ui.CorLine.crs()
     else:
-        raise ValueError("Corridor line has no valid CRS.")
+        ui.crs_rst = QgsCoordinateReferenceSystem(ui.epsg_code)
+        QgsMessBox('Corridor line CRS Error', f'Your Corridor line has no valid CRS.\n{ui.epsg_code} set.')
 
     exploded_lines = processing.run("native:explodelines", {
         'INPUT': ui.pathLine,
@@ -72,7 +75,7 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
             x_start, y_start = coords[0].x(), coords[0].y()
             x_end, y_end = coords[1].x(), coords[1].y()
         except IndexError as e:
-            QgsPrint(f"Błąd indeksu: {e} - coords: {coords}")
+            QgsPrint(f"Index error: {e} - coords: {coords}")
             continue
 
         a_line, _ = line(y_start, y_end, x_start, x_end)
@@ -109,8 +112,8 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     photo_lay = processing.run("native:mergevectorlayers",
                                {'LAYERS': photo_lay_list,
                                 'CRS': None, 'OUTPUT': 'TEMPORARY_OUTPUT'})['OUTPUT']
-    pc_lay.setCrs(ui.crs_vct)
-    photo_lay.setCrs(ui.crs_vct)
+    pc_lay.setCrs(QgsCoordinateReferenceSystem(ui.epsg_code))
+    photo_lay.setCrs(QgsCoordinateReferenceSystem(ui.epsg_code))
     theta = fabs(atan2(len_across / 2, len_along / 2))
     dist = sqrt((len_along / 2) ** 2 + (len_across / 2) ** 2)
     return pc_lay, photo_lay, line_buf_list, theta, dist

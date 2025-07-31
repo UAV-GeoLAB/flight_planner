@@ -6,24 +6,30 @@ from .gsd_map.process_gsd import process_gsd
 def process_quality_control(worker):
     result = []
     try:
-        footprint_lay, ds_list, ulx_list, uly_list, lrx_list, lry_list, xres, yres = process_footprints(worker)
+        func_output = process_footprints(worker)
+        if func_output is None:
+            return
+        footprint_lay, ds_list, ulx_list, uly_list, lrx_list, lry_list, xres, yres = func_output
 
         if worker.overlap_bool:
             overlap_layer = process_overlap(worker, ds_list,
                                             ulx_list, uly_list,
                                             lrx_list, lry_list,
                                             xres, yres)
-            result.append(overlap_layer)
+            if overlap_layer is not None:
+                result.append(overlap_layer)
 
         if worker.gsd_bool:
             gsd_layer = process_gsd(worker, ds_list,
                                     ulx_list, uly_list, 
                                     lrx_list, lry_list,
                                     xres, yres)
-            result.append(gsd_layer)
+            if gsd_layer is not None:
+                result.append(gsd_layer)
 
         if worker.footprint_bool:
-            result.append(footprint_lay)
+            if footprint_lay is not None:
+                result.append(footprint_lay)
 
         worker.progress.emit(100)
         worker.finished.emit(result, "quality_control")

@@ -87,15 +87,21 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.mMapLayerComboBoxAoI.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.mMapLayerComboBoxCorridor.setFilters(QgsMapLayerProxyModel.LineLayer)
         
-        self.pushButtonCancelDesign.clicked.connect(self.on_pushButtonCancelDesign_clicked)
+        self.pushButtonCancelDesign.clicked.connect(lambda: self.cancel_worker('design'))
+        self.pushButtonCancelControl.clicked.connect(lambda: self.cancel_worker('control'))
         self.crsSelector.setCrs(QgsCoordinateReferenceSystem(self.epsg_code))
         self.crsSelector.crsChanged.connect(self.on_crs_changed)
+
+        self.radioButtonSeaLevel.toggled.connect(self.on_altitudeTypeChanged)
+        self.radioButtonGroundLevel.toggled.connect(self.on_altitudeTypeChanged)
         self._init_default_layers()
     
     def _init_default_layers(self):
         self.on_mMapLayerComboBoxDTM_layerChanged()
         self.on_mMapLayerComboBoxAoI_layerChanged()
         self.on_mMapLayerComboBoxCorridor_layerChanged()
+        if self.tabWidget.currentIndex() == 1:
+            self.on_mMapLayerComboBoxProjectionCentres_layerChanged()
     
     def on_mMapLayerComboBoxDTM_layerChanged(self):
         lyr = self.mMapLayerComboBoxDTM.currentLayer()
@@ -201,9 +207,11 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         QgsPrint(traceback_str, level="Critical")
         self.pushButtonRunDesign.setEnabled(True)
 
-    def on_pushButtonCancelDesign_clicked(self):
-        if hasattr(self, "worker") and self.worker:
+    def cancel_worker(self, which):
+        if which == 'design' and hasattr(self, "worker") and self.worker:
             self.worker.killed = True
+        elif which == 'control' and hasattr(self, "worker_control") and self.worker_control:
+            self.worker_control.killed = True
             
     def on_mMapLayerComboBoxProjectionCentres_layerChanged(self):
         try:
@@ -225,8 +233,13 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
                 clear_field_layers()
                 return
 
+            if self.radioButtonSeaLevel.isChecked():
+                alt_type = "asl"
+            elif self.radioButtonGroundLevel.isChecked():
+                alt_type = "agl"
+
             field_combos = [
-                (self.mFieldComboBoxAltControl, "alt"),
+                (self.mFieldComboBoxAltControl, alt_type),
                 (self.mFieldComboBoxOmega, "omega"),
                 (self.mFieldComboBoxPhi, "phi"),
                 (self.mFieldComboBoxKappa, "kappa")
@@ -239,7 +252,26 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
                     combo.setField(field_name)
         except Exception:
             QgsTraceback()
-    
+
+    def on_altitudeTypeChanged(self):
+        layer = self.mFieldComboBoxAltControl.layer()
+        if not layer:
+            return
+
+        if self.radioButtonSeaLevel.isChecked():
+            alt_type = "asl"
+        elif self.radioButtonGroundLevel.isChecked():
+            alt_type = "agl"
+        else:
+            alt_type = None
+
+        if alt_type is None:
+            return
+
+        field_name = find_matching_field(layer, alt_type)
+        if field_name:
+            self.mFieldComboBoxAltControl.setField(field_name)
+
     def on_pushButtonRunControl_clicked(self):
         proj_centres = self.mMapLayerComboBoxProjectionCentres.currentLayer()
         fields = {
@@ -285,7 +317,6 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             self.pushButtonRunDesign.setEnabled(False)
         except Exception:
             QgsTraceback()
-            #QgsMessBox(title='Error', text='Quality control failed')
 
     def startWorker_control(self, **params):
         worker = QCWorker(**params)
