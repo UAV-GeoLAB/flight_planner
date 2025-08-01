@@ -18,9 +18,9 @@ from PyQt5 import QtWidgets
 from .ui.quality_control.worker import WorkerControl
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'flight_planner_v1_dialog_base.ui'))
+    os.path.dirname(__file__), 'flight_planner_dialog_base.ui'))
 
-class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
+class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)

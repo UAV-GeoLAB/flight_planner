@@ -3,11 +3,11 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
 from .resources import *
-from .flight_planner_v1_dialog import FlightPlannerPWDialog
+from .flight_planner_dialog import FlightPlannerDialog
 import os.path
 
 
-class FlightPlannerPW:
+class FlightPlanner:
     def __init__(self, iface):
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
@@ -88,7 +88,7 @@ class FlightPlannerPW:
         if self.dlg:
             self.dlg.close()
             
-        self.dlg = FlightPlannerPWDialog()
+        self.dlg = FlightPlannerDialog()
         self.dlg.show()
     #     if self.first_start == True:
     #         self.first_start = False
