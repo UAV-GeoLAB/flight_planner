@@ -43,7 +43,7 @@ def run_design_separate_altitude(ui):
         else:
             params['Range'] = ui.geom_AoI
 
-        ui.startWorker_updateAltitude(**params)
+        ui.startWorker_updateAltitude(mode="separate", **params)
     except Exception:
         ui.progressBar.setValue(0)
         ui.pushButtonCancelDesign.setVisible(False)

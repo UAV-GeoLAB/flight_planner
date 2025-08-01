@@ -13,6 +13,7 @@ from .ui.flight_design.altitude_type.separate_altitude.run_design import run_des
 from .ui.flight_design.altitude_type.terrain_following.run_design import run_design_terrain_following
 from PyQt5.QtCore import QThread
 from .ui.flight_design.altitude_type.separate_altitude.worker import Worker
+from .ui.flight_design.altitude_type.terrain_following.worker import WorkerTerrain
 from PyQt5 import QtWidgets
 from qgis.core import QgsProject, QgsMessageLog, Qgis
 from .functions import add_to_canvas
@@ -163,14 +164,18 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.epsg_code = crs.authid()
         self.crsSelector.setCrs(QgsCoordinateReferenceSystem(self.epsg_code))
 
-    def startWorker_updateAltitude(self, **params):
+    def startWorker_updateAltitude(self, mode, **params):
         self.pushButtonRunDesign.setEnabled(False)
 
         current_progress = self.progressBar.value()
         params["start_progress"] = current_progress
 
-        worker = Worker(**params)
+        if mode == "terrain":
+            worker = WorkerTerrain(**params)
+        else:
+            worker = Worker(**params)
         thread = QThread(self)
+
         worker.moveToThread(thread)
 
         worker.finished.connect(self.workerFinished)
@@ -181,8 +186,10 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
 
         worker.finished.connect(worker.deleteLater)
         thread.finished.connect(thread.deleteLater)
-
-        thread.started.connect(worker.run_altitudeStrip)
+        if mode == "terrain":
+            thread.started.connect(worker.run_followingTerrain)
+        else:
+            thread.started.connect(worker.run_altitudeStrip)
         
         thread.start()
         self.thread = thread
