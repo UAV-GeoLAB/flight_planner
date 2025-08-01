@@ -8,6 +8,7 @@ from ..altitudes_utils.process_modes import process_block_mode, process_corridor
 
 def run_design_terrain_following(ui):
     """RunDesign logic for 'Terrain Following'."""
+    ui.pushButtonRunDesign.setEnabled(False)
     try:
         if not validate_inputs(ui):
             return

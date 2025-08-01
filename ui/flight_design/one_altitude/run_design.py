@@ -9,6 +9,7 @@ from ..altitudes_utils.enrichments import enrich_projection_centres_with_agl
 from ..altitudes_utils.layer_styling import prepare_and_style_layers
 
 def run_design_one_altitude(ui):
+    """RunDesign logic for 'One Altitude ASL for Entire Flight'."""
     ui.pushButtonRunDesign.setEnabled(False)
     try:        
         if not validate_inputs(ui):
