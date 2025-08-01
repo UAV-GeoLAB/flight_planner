@@ -16,11 +16,12 @@ from qgis.core import (
     QgsGeometry,
     QgsPointXY,
     QgsVectorLayer,
+    QgsCoordinateReferenceSystem
 )
 
 from PyQt5.QtWidgets import QApplication
 
-from .....functions import (
+from ....functions import (
     change_layer_style,
     create_flight_line,
     crs2pixel,
@@ -47,6 +48,8 @@ class WorkerTerrain(QObject):
         self.crs_rst = data.get('crsRasterLayer')
         self.tolerance = data.get('tolerance')
         self.altitude_AGL = data.get('altitude_AGL')
+        self.start_progress = data.get("start_progress", 0)
+        self.epsg_code = data.get("epsg_code")
         self.killed = False
 
     def run_followingTerrain(self):
@@ -191,7 +194,9 @@ class WorkerTerrain(QObject):
                 # increment progress
                 progress_c += 1
                 if step == 0 or progress_c % step == 0:
-                    self.progress.emit(progress_c / float(strips_nr) * 100)
+                    progress_range = 100 - self.start_progress
+                    progress_value = self.start_progress + int((progress_c / strips_nr) * progress_range)
+                    self.progress.emit(progress_value)
             if self.killed is False:
                 self.progress.emit(100)
                 flight_line = create_flight_line(waypoints_layer, self.crs_vct)
@@ -215,6 +220,8 @@ class WorkerTerrain(QObject):
                 change_layer_style(self.layer, {'size': '1.0'})
                 self.layer_pol.setName('photos')
                 self.layer.setName('projection centres')
+                waypoints_layer.setCrs(QgsCoordinateReferenceSystem(self.epsg_code))
+                flight_line.setCrs(QgsCoordinateReferenceSystem(self.epsg_code))
                 result.append(self.layer)
                 result.append(flight_line)
                 result.append(waypoints_layer)

@@ -1,7 +1,7 @@
 from qgis.core import QgsRasterLayer, QgsVectorLayer
 from PyQt5.QtCore import pyqtSlot
 
-from ..utils import QgsMessBox
+from ..error_reporting import QgsMessBox
 from .terrain_utils import create_buffer_around_line, minmaxheight
 
 

@@ -1,23 +1,21 @@
-from qgis.PyQt import QtWidgets
+from qgis.PyQt import QtWidgets, uic
 from .ui.camera_section import CameraSectionHandler
 from .ui.altitude_section import AltitudeSectionHandler
 from .ui.terrain_section import TerrainSectionHandler
 from .ui.direction_section import DirectionSectionHandler
 import os
-from .utils import QgsPrint, QgsTraceback, QgsMessBox, find_matching_field
-from qgis.PyQt import uic
+from .error_reporting import QgsPrint, QgsTraceback, QgsMessBox
+from .functions import find_matching_field, add_to_canvas
 from osgeo import gdal
-from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel, QgsCoordinateReferenceSystem
-from .ui.flight_design.altitude_type.one_altitude.run_design import run_design_one_altitude
-from .ui.flight_design.altitude_type.separate_altitude.run_design import run_design_separate_altitude
-from .ui.flight_design.altitude_type.terrain_following.run_design import run_design_terrain_following
+from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel, QgsCoordinateReferenceSystem, QgsProject, QgsMessageLog, Qgis
+from .ui.flight_design.one_altitude.run_design import run_design_one_altitude
+from .ui.flight_design.separate_altitude.run_design import run_design_separate_altitude
+from .ui.flight_design.terrain_following.run_design import run_design_terrain_following
+from .ui.flight_design.separate_altitude.worker import WorkerSeparate
+from .ui.flight_design.terrain_following.worker import WorkerTerrain
 from PyQt5.QtCore import QThread
-from .ui.flight_design.altitude_type.separate_altitude.worker import Worker
-from .ui.flight_design.altitude_type.terrain_following.worker import WorkerTerrain
 from PyQt5 import QtWidgets
-from qgis.core import QgsProject, QgsMessageLog, Qgis
-from .functions import add_to_canvas
-from .ui.quality_control.worker import Worker as QCWorker
+from .ui.quality_control.worker import WorkerControl
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'flight_planner_v1_dialog_base.ui'))
@@ -26,7 +24,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-
+        self.tabWidget.setCurrentIndex(0)
         '''Hiding Cancel button'''
         self.pushButtonCancelDesign.setVisible(False)
 
@@ -146,9 +144,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             self.on_mMapLayerComboBoxProjectionCentres_layerChanged()
 
     def on_pushButtonRunDesign_clicked(self):
-        self.pushButtonCancelDesign.setVisible(True)
         altitude_type = self.comboBoxAltitudeType.currentText()
-
         try:
             if altitude_type == 'One Altitude ASL For Entire Flight':
                 run_design_one_altitude(self)
@@ -173,7 +169,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         if mode == "terrain":
             worker = WorkerTerrain(**params)
         else:
-            worker = Worker(**params)
+            worker = WorkerSeparate(**params)
         thread = QThread(self)
 
         worker.moveToThread(thread)
@@ -196,10 +192,8 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
         self.worker = worker
 
     def workerFinished(self, result, group_name):
-        self.worker.deleteLater()
         self.thread.quit()
         self.thread.wait()
-        self.thread.deleteLater()
 
         if result is not None:
             if group_name == 'flight_design':
@@ -326,7 +320,7 @@ class FlightPlannerPWDialog(QtWidgets.QDialog, FORM_CLASS):
             QgsTraceback()
 
     def startWorker_control(self, **params):
-        worker = QCWorker(**params)
+        worker = WorkerControl(**params)
         thread = QThread(self)
         worker.moveToThread(thread)
 

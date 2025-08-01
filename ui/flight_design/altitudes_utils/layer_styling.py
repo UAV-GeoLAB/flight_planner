@@ -1,5 +1,5 @@
 import os
-from .....functions import create_waypoints, create_flight_line, change_layer_style, add_to_canvas
+from ....functions import create_waypoints, create_flight_line, change_layer_style, add_to_canvas
 from qgis.core import QgsCoordinateReferenceSystem
 
 def prepare_and_style_layers(ui, pc_lay, photo_lay):

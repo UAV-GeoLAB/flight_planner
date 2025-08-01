@@ -3,7 +3,6 @@ from qgis.core import QgsMessageLog, Qgis
 from qgis.PyQt.QtWidgets import QMessageBox
 import re
 
-
 def QgsTraceback():
     QgsMessageLog.logMessage('\n' + traceback.format_exc(), 'Flight Planner', Qgis.Critical)
 
@@ -30,20 +29,3 @@ def QgsMessBox(title="Flight Planner", text="Information", level="Information"):
         QMessageBox.warning(None, title, text)
     else:
         QMessageBox.information(None, title, text)
-
-def transf_coord(transformer, x, y):
-    """Transform coordinates between two CRS."""
-    x_transformed, y_transformed = transformer.transform(x, y)
-    return x_transformed, y_transformed
-
-def find_matching_field(layer, patterns):
-    def normalize(name):
-        return re.sub(r'[^a-z]', '', name.lower())
-
-    norm_patterns = [normalize(p) for p in patterns]
-
-    for field in layer.fields():
-        norm_name = normalize(field.name())
-        if all(p in norm_name for p in norm_patterns):
-            return field.name()
-    return None

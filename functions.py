@@ -35,7 +35,7 @@ from qgis.core import (
     QgsVectorLayer,
     Qgis
 )
-
+import re
 
 def add_to_canvas(layers, group_name, counter=1):
     root = QgsProject.instance().layerTreeRoot()
@@ -883,11 +883,15 @@ def minmaxheight(vector, raster):
 
     return min_h, max_h
 
-def save_error():
-    """Save error traceback as file."""
 
-    error_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), 'Error_log.txt')
-    with open(error_path, 'a') as error_file:
-        error_file.write(time.ctime(time.time()) + '\n')
-        error_file.write(traceback.format_exc() + '\n')
+def find_matching_field(layer, patterns):
+    def normalize(name):
+        return re.sub(r'[^a-z]', '', name.lower())
+
+    norm_patterns = [normalize(p) for p in patterns]
+
+    for field in layer.fields():
+        norm_name = normalize(field.name())
+        if all(p in norm_name for p in norm_patterns):
+            return field.name()
+    return None

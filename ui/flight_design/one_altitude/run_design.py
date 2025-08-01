@@ -1,7 +1,7 @@
-from .....utils import QgsTraceback
-from .....functions import *
+from ....error_reporting import QgsTraceback
+from ....functions import *
 from ..altitudes_utils.inputs_validation import validate_inputs
-from ..altitudes_utils.initialization import initialize_crs_and_progressbar
+from ..altitudes_utils.initialization import initialize_design_environment
 from ..altitudes_utils.flight_parameters import calculate_flight_parameters
 from ..altitudes_utils.altitude_calculation import calculate_altitude
 from ..altitudes_utils.process_modes import process_block_mode, process_corridor_mode
@@ -10,11 +10,11 @@ from ..altitudes_utils.layer_styling import prepare_and_style_layers
 
 def run_design_one_altitude(ui):
     ui.pushButtonRunDesign.setEnabled(False)
-    try:
+    try:        
         if not validate_inputs(ui):
             return
-
-        initialize_crs_and_progressbar(ui)
+        
+        initialize_design_environment(ui)
 
         altitude_ASL, _ = calculate_altitude(ui)
         Bx, By, len_along, len_across = calculate_flight_parameters(ui)
@@ -32,3 +32,4 @@ def run_design_one_altitude(ui):
         QgsTraceback()
     finally:
         ui.pushButtonRunDesign.setEnabled(True)
+        ui.pushButtonCancelDesign.setVisible(False)

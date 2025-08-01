@@ -1,4 +1,4 @@
-from ..utils import QgsMessBox
+from ..error_reporting import QgsMessBox
 
 class AltitudeSectionHandler:
     def __init__(self, dialog, camera_handler):

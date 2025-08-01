@@ -1,8 +1,8 @@
 from math import atan, pi, fabs, sqrt, atan2
 from qgis import processing
-from .....functions import bounding_box_at_angle, projection_centres, corridor_flight_numbering, line
+from ....functions import bounding_box_at_angle, projection_centres, corridor_flight_numbering, line
 from ._annotation import annotate_segment_features
-from .....utils import QgsPrint, QgsMessBox
+from ....error_reporting import QgsPrint, QgsMessBox
 from qgis.core import QgsField, QgsCoordinateReferenceSystem
 from PyQt5.QtCore import QVariant
 

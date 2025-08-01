@@ -1,6 +1,6 @@
 import json
 import os
-from ..utils import QgsTraceback
+from ..error_reporting import QgsTraceback
 from .models import Camera
 
 FILE_PATH = os.path.join(os.path.dirname(__file__), 'cameras.json')

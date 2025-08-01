@@ -1,5 +1,5 @@
 import os
-from .....utils import QgsTraceback, QgsPrint
+from ....error_reporting import QgsTraceback, QgsPrint
 import numpy as np
 from PyQt5.QtCore import QObject, pyqtSignal
 from qgis.core import (
@@ -11,7 +11,7 @@ from qgis.core import (
 )
 from pyproj import Transformer
 
-from .....functions import (
+from ....functions import (
     create_flight_line,
     create_waypoints,
     change_layer_style,
@@ -20,7 +20,7 @@ from .....functions import (
 )
 
 
-class Worker(QObject):
+class WorkerSeparate(QObject):
     """Worker dla trybu 'Separate Altitude ASL For Each Strip'."""
 
     finished = pyqtSignal(object, str)
@@ -121,12 +121,12 @@ class Worker(QObject):
                 if self.tab_widg_cor:
                     common = g_strip.intersection(self.g_line_list[BuffNr - 1])
                     if common.isEmpty():
-                        QgsPrint(f"Strip {t}: Intersection with g_line_list[{BuffNr - 1}] is empty, używam g_strip zamiast intersection.")
+                        QgsPrint(f"Strip {t}: Intersection with corridor segment {BuffNr - 1} is empty, using full strip geometry instead.")
                         common = g_strip
                 else:
                     common = g_strip.intersection(self.geom_aoi)
                     if common.isEmpty():
-                        QgsPrint(f"Strip {t}: Intersection with geom_aoi is empty, używam g_strip zamiast intersection.")
+                        QgsPrint(f"Strip {t}: Intersection with Area of Interest is empty, using full strip geometry instead.")
                         common = g_strip
 
                 feat_strip.setGeometry(common)

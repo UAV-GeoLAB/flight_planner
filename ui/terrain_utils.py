@@ -3,7 +3,8 @@ from qgis.analysis import QgsZonalStatistics
 from qgis import processing
 from math import ceil, fabs, isnan
 from pyproj import Transformer
-from ..utils import transf_coord, QgsMessBox
+from ..functions import transf_coord
+from ..error_reporting import QgsMessBox
 
 
 def create_buffer_around_line(path_line, gdal_ds, dtm_layer, buffer_value):

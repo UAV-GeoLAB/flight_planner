@@ -1,4 +1,4 @@
-from .....utils import QgsPrint, QgsMessBox
+from ....error_reporting import QgsPrint, QgsMessBox
 
 def validate_inputs(ui):
     if not hasattr(ui.camera_handler, 'camera') or ui.camera_handler.camera is None:
