@@ -38,6 +38,7 @@ from qgis.core import (
 import re
 
 def add_to_canvas(layers, group_name, counter=1):
+    '''Adding layer/layers to canvas'''
     root = QgsProject.instance().layerTreeRoot()
     group = root.insertGroup(0, f"{group_name}_{counter}")
 
@@ -224,6 +225,7 @@ def simplify_profile(vertices, epsilon):
 
 
 def distance2d(a, b):
+    '''Calculate distance between 2 points'''
     return sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
 
@@ -760,6 +762,7 @@ def projection_centres(alpha, geometry, crs_vect, a_ll, b_ll, a_l_, b_l_,
 
 
 def update_order(k, first_p, first_s, p_nr, s_nr, pc_layer):
+    '''Update order of elements in layer'''
     list_p = list(range(first_p, int(p_nr) + 1))
     list_s = list(range(first_s, int(s_nr) + 1))
     i = len(list_p) - 1
@@ -885,6 +888,7 @@ def minmaxheight(vector, raster):
 
 
 def find_matching_field(layer, patterns):
+    '''Find matching field name that contains given pattern'''
     def normalize(name):
         return re.sub(r'[^a-z]', '', name.lower())
 
