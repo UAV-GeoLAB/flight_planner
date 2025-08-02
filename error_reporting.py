@@ -1,7 +1,6 @@
 import traceback
 from qgis.core import QgsMessageLog, Qgis
 from qgis.PyQt.QtWidgets import QMessageBox
-import re
 
 def QgsTraceback():
     '''Display traceback errors in QGIS console log'''
