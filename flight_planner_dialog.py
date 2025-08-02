@@ -7,7 +7,12 @@ import os
 from .error_reporting import QgsPrint, QgsTraceback, QgsMessBox
 from .functions import find_matching_field, add_to_canvas
 from osgeo import gdal
-from qgis.core import QgsMapLayerProxyModel, QgsFieldProxyModel, QgsCoordinateReferenceSystem, QgsProject, QgsMessageLog, Qgis
+from qgis.core import (
+    QgsMapLayerProxyModel, 
+    QgsFieldProxyModel, 
+    QgsCoordinateReferenceSystem, 
+    QgsProject
+)
 from .ui.flight_design.one_altitude.run_design import run_design_one_altitude
 from .ui.flight_design.separate_altitude.run_design import run_design_separate_altitude
 from .ui.flight_design.terrain_following.run_design import run_design_terrain_following
@@ -25,10 +30,10 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         super().__init__(parent)
         self.setupUi(self)
         self.tabWidget.setCurrentIndex(0)
-        '''Hiding Cancel button'''
+        '''Hide Cancel button'''
         self.pushButtonCancelDesign.setVisible(False)
 
-        '''Switching window tabs'''
+        '''Switch window tabs'''
         self.tabBlock = True
         self.tabCorridor = False
         self.tabWidgetBlockCorridor.currentChanged.connect(self.on_tabWidgetBlockCorridor_currentChanged)
@@ -58,12 +63,12 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.direction_handler = DirectionSectionHandler(self.dial, self.spinBoxDirection)
         
-        '''Filling Altitude Type combobox'''
+        '''Fill Altitude Type combobox'''
         self.comboBoxAltitudeType.addItems(["One Altitude ASL For Entire Flight",
             "Separate Altitude ASL For Each Strip",
             "Terrain Following"])
 
-        '''Disconnecting previous connections to avoid multiple calls'''
+        '''Disconnect previous connections to avoid multiple calls'''
         try:
             self.pushButtonRunDesign.clicked.disconnect()
         except TypeError:
@@ -86,11 +91,15 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.mMapLayerComboBoxAoI.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.mMapLayerComboBoxCorridor.setFilters(QgsMapLayerProxyModel.LineLayer)
         
+        '''Handle click of cancel buttons'''
         self.pushButtonCancelDesign.clicked.connect(lambda: self.cancel_worker('design'))
         self.pushButtonCancelControl.clicked.connect(lambda: self.cancel_worker('control'))
+        
+        '''CRS Selector configuration'''
         self.crsSelector.setCrs(QgsCoordinateReferenceSystem(self.epsg_code))
         self.crsSelector.crsChanged.connect(self.on_crs_changed)
 
+        '''Quality control: Process automatization'''
         self.radioButtonSeaLevel.toggled.connect(self.on_altitudeTypeChanged)
         self.radioButtonGroundLevel.toggled.connect(self.on_altitudeTypeChanged)
         self._init_default_layers()
@@ -103,6 +112,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.on_mMapLayerComboBoxProjectionCentres_layerChanged()
     
     def on_mMapLayerComboBoxDTM_layerChanged(self):
+        '''Handle change of DTM layer'''
         lyr = self.mMapLayerComboBoxDTM.currentLayer()
         self.DTM = lyr
         if lyr:
@@ -113,6 +123,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
                 QgsTraceback()
 
     def on_mMapLayerComboBoxAoI_layerChanged(self):
+        '''Handle change of AoI layer'''
         lyr = self.mMapLayerComboBoxAoI.currentLayer()
         self.AreaOfInterest = lyr
         if lyr:
@@ -123,6 +134,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.terrain_handler.set_aoi(lyr)
 
     def on_mMapLayerComboBoxCorridor_layerChanged(self):
+        '''Handle change of Corridor lane layer'''
         lyr = self.mMapLayerComboBoxCorridor.currentLayer()
         self.CorLine = lyr
         if lyr is not None:
@@ -132,6 +144,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.pathLine = None
 
     def on_tabWidgetBlockCorridor_currentChanged(self):
+        '''Handle tab change (Block / Corridor)'''
         if self.tabWidgetBlockCorridor.currentIndex() == 0:
             self.tabBlock = True
             self.tabCorridor = False
@@ -140,10 +153,12 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.tabCorridor = True
 
     def on_tabWidget_changed(self):
+        '''Handle tab change (Flight Design / Quality Control)'''
         if self.tabWidget.currentIndex() == 1:
             self.on_mMapLayerComboBoxProjectionCentres_layerChanged()
 
     def on_pushButtonRunDesign_clicked(self):
+        '''Start proper type of altitude after clicking Run button'''
         altitude_type = self.comboBoxAltitudeType.currentText()
         try:
             if altitude_type == 'One Altitude ASL For Entire Flight':
@@ -157,10 +172,12 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.pushButtonCancelDesign.setVisible(False)
     
     def on_crs_changed(self, crs):
+        '''Handle change of Coordinate Reference System'''
         self.epsg_code = crs.authid()
         self.crsSelector.setCrs(QgsCoordinateReferenceSystem(self.epsg_code))
 
     def startWorker_updateAltitude(self, mode, **params):
+        '''Initialize Workers'''
         self.pushButtonRunDesign.setEnabled(False)
 
         current_progress = self.progressBar.value()
@@ -192,6 +209,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.worker = worker
 
     def workerFinished(self, result, group_name):
+        '''Generate result after ending work in Workers'''
         self.thread.quit()
         self.thread.wait()
 
@@ -204,17 +222,20 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.pushButtonCancelDesign.setVisible(False)
 
     def workerError(self, exception, traceback_str):
+        '''Handle errors in Workers'''
         QgsPrint(str(exception), level="Critical")
         QgsPrint(traceback_str, level="Critical")
         self.pushButtonRunDesign.setEnabled(True)
 
     def cancel_worker(self, which):
+        '''Cancel Workers during processing'''
         if which == 'design' and hasattr(self, "worker") and self.worker:
             self.worker.killed = True
         elif which == 'control' and hasattr(self, "worker_control") and self.worker_control:
             self.worker_control.killed = True
             
     def on_mMapLayerComboBoxProjectionCentres_layerChanged(self):
+        '''Automatic Fields filling after seting layer with Projection Centres'''
         try:
             layer = self.mMapLayerComboBoxProjectionCentres.currentLayer()
             
@@ -255,6 +276,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             QgsTraceback()
 
     def on_altitudeTypeChanged(self):
+        '''Automatic set of Altitude Field after change in combobox'''
         layer = self.mFieldComboBoxAltControl.layer()
         if not layer:
             return
@@ -274,6 +296,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             self.mFieldComboBoxAltControl.setField(field_name)
 
     def on_pushButtonRunControl_clicked(self):
+        '''Start controlling quality after clicking Run button'''
         proj_centres = self.mMapLayerComboBoxProjectionCentres.currentLayer()
         fields = {
             'Altitude field': self.mFieldComboBoxAltControl.currentField(),
@@ -315,11 +338,11 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
                 height_is_ASL=self.radioButtonSeaLevel.isChecked()
             )
             self.pushButtonRunControl.setEnabled(False)
-            self.pushButtonRunDesign.setEnabled(False)
         except Exception:
             QgsTraceback()
 
     def startWorker_control(self, **params):
+        '''Initialize Quality Control Worker'''
         worker = WorkerControl(**params)
         thread = QThread(self)
         worker.moveToThread(thread)
@@ -341,6 +364,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         self.worker_control = worker
 
     def workerControlFinished(self, result, group_name):
+        '''Generate result after ending work in Quality Control Worker'''
         self.thread_control.quit()
         self.thread_control.wait()
         self.thread_control.deleteLater()
