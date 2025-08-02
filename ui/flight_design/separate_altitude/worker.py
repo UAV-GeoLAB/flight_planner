@@ -21,7 +21,7 @@ from ....functions import (
 
 
 class WorkerSeparate(QObject):
-    """Worker dla trybu 'Separate Altitude ASL For Each Strip'."""
+    """Worker for mode 'Separate Altitude ASL For Each Strip'."""
 
     finished = pyqtSignal(object, str)
     error = pyqtSignal(Exception, str)
@@ -207,6 +207,7 @@ class WorkerSeparate(QObject):
         self.enabled.emit(True)
 
     def handle_cancel(self):
+        """Handle pressed Cancel button"""
         self.progress.emit(0)
         self.enabled.emit(True)
         self.finished.emit(None, "flight_design")

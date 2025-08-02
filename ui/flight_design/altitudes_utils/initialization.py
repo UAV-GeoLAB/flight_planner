@@ -4,6 +4,7 @@ from ...terrain_utils import is_poligon_inside_raster
 from PyQt5.QtWidgets import QApplication
 
 def initialize_crs_and_progressbar(ui):
+    """Validate CRS of DTM and configure progress bar format"""
     if ui.DTM and ui.DTM.crs().isValid():
         ui.crs_rst = ui.DTM.crs()
     else:
@@ -17,6 +18,7 @@ def initialize_crs_and_progressbar(ui):
 
 
 def initialize_design_environment(ui):
+    """Check if AoI is inside DTM and display proper progress bar status"""
     ui.progressBar.setFormat("Initializing")
     QApplication.processEvents()
     initialize_crs_and_progressbar(ui)

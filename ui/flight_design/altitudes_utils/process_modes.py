@@ -8,6 +8,7 @@ from PyQt5.QtCore import QVariant
 
 
 def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
+    """Get projection centres and photos layer from AoI"""
     if ui.AreaOfInterest and ui.AreaOfInterest.crs().isValid():
         ui.crs_vct = ui.AreaOfInterest.crs()
     else:
@@ -35,6 +36,7 @@ def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     return pc_lay, photo_lay, theta, dist
 
 def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
+    """Get projection centres and photos layer from Corridor line"""
     if ui.CorLine and ui.CorLine.crs().isValid():
         ui.crs_vct = ui.CorLine.crs()
     else:

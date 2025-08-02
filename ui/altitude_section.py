@@ -1,12 +1,14 @@
 from ..error_reporting import QgsMessBox
 
 class AltitudeSectionHandler:
+    """Handler for switching between GSD and Altitude AGL mode in UI"""
     def __init__(self, dialog, camera_handler):
         self.dialog = dialog
         self.camera_handler = camera_handler
         self.camera_handler.on_camera_changed = self._recalculate_values
 
     def setup(self):
+        """Connect signals and initialize altitude/GSD display based on current UI state."""
         self.dialog.comboBoxAltitudeType.currentTextChanged.connect(self.on_altitude_type_changed)
         self.dialog.radioButtonAltAGL.toggled.connect(self.on_altitude_mode_toggled)
         
@@ -17,12 +19,14 @@ class AltitudeSectionHandler:
         self._recalculate_values()
     
     def _recalculate_values(self):
+        """Recalculate GSD or altitude depending on currently selected mode."""
         if self.dialog.radioButtonGSD.isChecked():
             self._calculate_altitude()
         else:
             self._calculate_gsd()
     
     def _on_mode_changed(self):
+        """Enable/Disable appropriate widgets based on selected mode and update values."""
         agl_mode = self.dialog.radioButtonAltAGL.isChecked()
         self.dialog.doubleSpinBoxAltAGL.setEnabled(agl_mode)
         self.dialog.doubleSpinBoxGSD.setEnabled(not agl_mode)
@@ -39,6 +43,7 @@ class AltitudeSectionHandler:
             self._calculate_altitude()
 
     def _calculate_gsd(self):
+        """Calculate GSD using parameters from UI"""
         if not self.camera_handler.camera:
             return
             
@@ -66,7 +71,7 @@ class AltitudeSectionHandler:
             pass
 
     def _calculate_altitude(self):
-        """Oblicza wysokość na podstawie GSD"""
+        """Calculate altitude AGL using GSD"""
         if not self.camera_handler.camera:
             return
             
@@ -99,6 +104,7 @@ class AltitudeSectionHandler:
             spin_box.setValue(getattr(spin_box, min_or_max)())
 
     def on_altitude_mode_toggled(self):
+        """Handle toggling between GSD and Alt. AGL"""
         if self.dialog.radioButtonGSD.isChecked():
             self.dialog.doubleSpinBoxAltAGL.setEnabled(False)
             self.dialog.doubleSpinBoxGSD.setEnabled(True)
@@ -112,6 +118,7 @@ class AltitudeSectionHandler:
             self._calculate_gsd()
 
     def on_altitude_type_changed(self, text: str):
+        """Set up UI according to selected Altitude Type"""
         if not isinstance(text, str):
             return
 
@@ -131,6 +138,7 @@ class AltitudeSectionHandler:
             self.dialog.doubleSpinBoxAltAGL.setEnabled(False)
     
     def _enable_more_settings_groupbox(self, enable: bool):
+        """Enable/Disable Get Heights section"""
         self.dialog.checkBoxIncreaseOverlap.setEnabled(enable)
         self.dialog.pushButtonGetHeights.setEnabled(enable)
         self.dialog.doubleSpinBoxMaxHeight.setEnabled(enable)

@@ -2,6 +2,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from .modules.processing import process_quality_control
 
 class WorkerControl(QObject):
+    """Worker for "Quality Control"."""
     finished = pyqtSignal(object, str)
     error = pyqtSignal(Exception, str)
     progress = pyqtSignal(int)
@@ -32,9 +33,11 @@ class WorkerControl(QObject):
         self.killed = False
 
     def run_control(self):
+        """Main worker function"""
         process_quality_control(self)
 
     def handle_cancel(self):
+        """Handle pressed Cancel button"""
         self.progress.emit(0)
         self.enabled.emit(True)
         self.finished.emit(None, "quality_control")

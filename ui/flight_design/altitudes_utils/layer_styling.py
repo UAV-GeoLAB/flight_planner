@@ -3,6 +3,7 @@ from ....functions import create_waypoints, create_flight_line, change_layer_sty
 from qgis.core import QgsCoordinateReferenceSystem
 
 def prepare_and_style_layers(ui, pc_lay, photo_lay):
+    """Prepare, set up and add layers to group"""
     waypoints_layer = create_waypoints(pc_lay, ui.crs_vct)
     waypoints_layer.setCrs(QgsCoordinateReferenceSystem(ui.epsg_code)) # Transform
 

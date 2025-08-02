@@ -4,6 +4,7 @@ from .overlapping.process_overlap import process_overlap
 from .gsd_map.process_gsd import process_gsd
 
 def process_quality_control(worker):
+    """Process controlling quality and generating layers"""
     result = []
     try:
         func_output = process_footprints(worker)

@@ -1,6 +1,7 @@
 from ....error_reporting import QgsPrint, QgsMessBox
 
 def validate_inputs(ui):
+    """Validate inputs connected with camera, and AoI / Corridor line"""
     if not hasattr(ui.camera_handler, 'camera') or ui.camera_handler.camera is None:
         QgsPrint("Camera is not configured properly.", level="Critical")
         return False

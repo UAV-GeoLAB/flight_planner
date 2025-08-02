@@ -5,6 +5,7 @@ from ..camera.storage import delete_camera, load_cameras, add_new_camera
 from ..error_reporting import QgsMessBox
 
 class CameraSectionHandler:
+    """Handler responsible for managing the camera selection and parameters section in the UI."""
     def __init__(self, dialog):
         self.dialog = dialog
         self.cameras = []
@@ -12,6 +13,7 @@ class CameraSectionHandler:
         self.on_camera_changed = None
 
     def setup(self):
+        """Set up connections and load the list of available cameras into the UI."""
         self.reload_camera_list()
         self.dialog.comboBoxCamera.activated.connect(self.on_camera_selected)
         self.dialog.pushButtonSaveCamera.clicked.connect(lambda: self.on_save_camera())
@@ -26,6 +28,7 @@ class CameraSectionHandler:
         self.on_camera_selected(0)
 
     def _on_camera_params_changed(self):
+        """Handle changes to camera parameter fields when 'Your camera' is selected."""
         if self.camera and self.camera.name == "Your camera":
             self.camera.focal_length = self.dialog.doubleSpinBoxFocalLength.value() / 1000
             self.camera.sensor_size = self.dialog.doubleSpinBoxSensorSize.value() / 1_000_000
@@ -36,6 +39,7 @@ class CameraSectionHandler:
                 self.on_camera_changed()
 
     def reload_camera_list(self):
+        """Load and sort available cameras from storage, then populate the combo box."""
         self.cameras = sorted(load_cameras(), key=lambda c: c.name)
         cb = self.dialog.comboBoxCamera
         cb.clear()
@@ -43,6 +47,7 @@ class CameraSectionHandler:
         cb.addItem("Your camera")
 
     def on_camera_selected(self, index):
+        """Handle selection of a camera from the combo box."""
         cb = self.dialog.comboBoxCamera
         name = cb.currentText()
 
@@ -73,6 +78,7 @@ class CameraSectionHandler:
 
     @pyqtSlot()
     def on_save_camera(self):
+        """Handle saving user-defined camera"""
         try:
             name, ok = QInputDialog.getText(self.dialog, "Save camera", "Enter camera name:")
             if not ok or not name:
@@ -93,6 +99,7 @@ class CameraSectionHandler:
 
     @pyqtSlot()
     def on_delete_camera(self):
+        """Delete the currently selected camera from storage"""
         try:
             name = self.dialog.comboBoxCamera.currentText()
             cam = next((c for c in self.cameras if c.name == name), None)
@@ -116,6 +123,7 @@ class CameraSectionHandler:
             QgsMessBox(title='Error', text='Deleting camera failed', level='Critical')
 
     def _enable_camera_fields(self, enable: bool):
+        """Enable/Disable the camera parameter input fields."""
         self.dialog.doubleSpinBoxFocalLength.setEnabled(enable)
         self.dialog.doubleSpinBoxSensorSize.setEnabled(enable)
         self.dialog.spinBoxPixelsAlongTrack.setEnabled(enable)

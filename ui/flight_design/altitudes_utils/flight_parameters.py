@@ -1,4 +1,5 @@
 def calculate_flight_parameters(ui):
+    """Get and calculate flight parameters according to UI data"""
     gsd = ui.doubleSpinBoxGSD.value() / 100
     camera = ui.camera_handler.camera
 

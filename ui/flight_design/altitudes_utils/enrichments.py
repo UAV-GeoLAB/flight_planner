@@ -2,6 +2,7 @@ from qgis.core import QgsPointXY
 from pyproj import Transformer
 
 def enrich_projection_centres_with_agl(ui, pc_lay):
+    """Enrich projection centres layer with altitude AGL"""
     if not hasattr(ui, 'DTM'):
         return
 

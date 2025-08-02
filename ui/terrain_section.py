@@ -15,17 +15,21 @@ class TerrainSectionHandler:
         self.gdal_ds = None
 
     def set_dtm(self, dtm_layer: QgsRasterLayer, gdal_dataset):
+        """Set the DTM layer and its GDAL dataset"""
         self.dtm = dtm_layer
         self.gdal_ds = gdal_dataset
 
     def set_aoi(self, aoi_layer: QgsVectorLayer):
+        """Set the AoI vector layer"""
         self.aoi = aoi_layer
 
     def set_corridor_line(self, line_layer: QgsVectorLayer):
+        """Set the Corridor Line layer"""
         self.path_line = line_layer
 
     @pyqtSlot()
     def on_btn_get_heights_clicked(self):
+        """Calculates the minimum and maximum terrain elevation values from the selected DTM"""
         if self.dtm is None:
             QgsMessBox(title="DTM needed", text="You have to load a valid DTM layer.", level="Critical")
             return

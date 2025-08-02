@@ -8,6 +8,8 @@ from ..error_reporting import QgsMessBox
 
 
 def create_buffer_around_line(path_line, gdal_ds, dtm_layer, buffer_value):
+    """Creates a buffer polygon around a corridor line 
+    and returns the buffered layer and minimum buffer."""
     gt = gdal_ds.GetGeoTransform()
     px_w, px_h = gt[1], -gt[5]
     ulx, uly = gt[0], gt[3]
@@ -36,6 +38,7 @@ def create_buffer_around_line(path_line, gdal_ds, dtm_layer, buffer_value):
     return out, min_buf
 
 def check_raster_values_on_polygon(raster_layer, polygon_geom):
+    """Verifies that the raster has valid values inside the AoI."""
     extent = polygon_geom.boundingBox()
     band = 1
 
@@ -49,6 +52,7 @@ def check_raster_values_on_polygon(raster_layer, polygon_geom):
                 raise ValueError("Raster contains None or NaN values within the polygon AoI.")
             
 def is_poligon_inside_raster(vlayer, dtm_layer):
+    """Verifies whether all features in a vector layer are fully inside the extent of a raster"""
     params_calc = {
         'INPUT_A': dtm_layer,
         'BAND_A': 1,
@@ -88,6 +92,7 @@ def is_poligon_inside_raster(vlayer, dtm_layer):
     return list(vlayer.getFeatures())
 
 def minmaxheight(vlayer, dtm_layer):
+    """Calculates minimum and maximum elevation values from DTM"""
     features_inside = is_poligon_inside_raster(vlayer, dtm_layer)
     temp_layer = QgsVectorLayer(f"Polygon?crs={vlayer.crs().authid()}", "temp", "memory")
     temp_layer.dataProvider().addFeatures(features_inside)
@@ -101,7 +106,7 @@ def minmaxheight(vlayer, dtm_layer):
     )
     
     if stats.calculateStatistics(None) != 0:
-        raise RuntimeError("Błąd obliczania statystyk strefowych.")
+        raise RuntimeError("Error in calculating stats.")
 
     gmin, gmax = None, None
     for f in temp_layer.getFeatures():
@@ -113,6 +118,6 @@ def minmaxheight(vlayer, dtm_layer):
             continue
     
     if gmin is None or gmax is None:
-        raise ValueError("Nie udało się określić min/max wartości z rastra.")
+        raise ValueError("Could not determine min/max values from raster.")
     
     return gmin, gmax

@@ -7,6 +7,7 @@ from ..altitudes_utils.altitude_calculation import calculate_altitude
 from ..altitudes_utils.process_modes import process_block_mode, process_corridor_mode
 
 def run_design_separate_altitude(ui):
+    """RunDesign logic for 'Separate Altitude ASL for Each Strip'."""
     ui.pushButtonRunDesign.setEnabled(False)
     try:
         if not validate_inputs(ui):

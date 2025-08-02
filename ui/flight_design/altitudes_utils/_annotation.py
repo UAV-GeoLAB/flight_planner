@@ -1,4 +1,5 @@
 def annotate_segment_features(pc_lay, photo_lay, segment, segment_nr):
+    """Anotate segment features to projection centres and photo layers"""
     pc_lay.startEditing()
     photo_lay.startEditing()
     feature_id = 1

@@ -7,6 +7,7 @@ import os
 from .styles import create_overlay_renderer
 
 def process_overlap(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xres, yres):
+    """Quality Control: Process overlapping layer"""
     ulx_fp = min(ulx_list)
     uly_fp = max(uly_list)
     lrx_fp = max(lrx_list)

@@ -6,6 +6,7 @@ import os
 from .styles import apply_gsd_style
 
 def process_gsd(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xres, yres):
+    """Quality Control: Process gsd_map layer"""
     ulx_fp = min(ulx_list)
     uly_fp = max(uly_list)
     lrx_fp = max(lrx_list)

@@ -1,4 +1,5 @@
 def calculate_altitude(ui):
+    """Calculate altitude ASL and AGL"""
     gsd = ui.doubleSpinBoxGSD.value() / 100
     max_h = ui.doubleSpinBoxMaxHeight.value()
     min_h = ui.doubleSpinBoxMinHeight.value()

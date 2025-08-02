@@ -33,7 +33,7 @@ from ....functions import (
 
 
 class WorkerTerrain(QObject):
-
+    """Worker for 'Terrain Following'."""
     finished = pyqtSignal(object, str)
     error = pyqtSignal(Exception, str)
     progress = pyqtSignal(int)
@@ -236,6 +236,7 @@ class WorkerTerrain(QObject):
         self.enabled.emit(True)
 
     def handle_cancel(self):
+        """Handle pressed Cancel button"""
         self.progress.emit(0)
         self.enabled.emit(True)
         self.finished.emit(None, "flight_design")

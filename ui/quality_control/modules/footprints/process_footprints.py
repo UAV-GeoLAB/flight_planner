@@ -21,6 +21,7 @@ from .styles import footprint_props
 from scipy import ndimage
 
 def process_footprints(worker):
+    """Quality Control: Process footprints layer"""
     transf_vct_rst = transf_rst_vct = None
     if worker.crs_rst != worker.crs_vct:
         from pyproj import Transformer
