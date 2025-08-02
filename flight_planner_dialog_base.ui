@@ -783,6 +783,9 @@ min and max terrain's height</string>
             <property name="text">
              <string>Photo Footprint</string>
             </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -790,12 +793,18 @@ min and max terrain's height</string>
             <property name="text">
              <string>Number of Overlapping Images</string>
             </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="checkBoxGSDmap">
             <property name="text">
              <string>GSD Map</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
