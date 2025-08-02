@@ -8,7 +8,6 @@ from qgis.core import (
 )
 from .....functions import (
     rotation_matrix,
-    clip_raster,
     transf_coord,
     crs2pixel,
     image_edge_points,
@@ -17,6 +16,7 @@ from .....functions import (
     overlap_photo,
     gsd
 )
+from .utils import clip_raster
 from .styles import footprint_props
 from scipy import ndimage
 
