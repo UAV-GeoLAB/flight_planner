@@ -90,11 +90,3 @@ class FlightPlanner:
             
         self.dlg = FlightPlannerDialog()
         self.dlg.show()
-    #     if self.first_start == True:
-    #         self.first_start = False
-    #         self.dlg = FlightPlannerPWDialog()
-
-    #     self.dlg.show()
-    #     result = self.dlg.exec_()
-    #     if result:
-    #         pass
