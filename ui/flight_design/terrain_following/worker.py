@@ -10,13 +10,11 @@ from math import (
 )
 import numpy as np
 from pyproj import Transformer
-from PyQt5.QtCore import QObject, QVariant, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal
 from qgis.core import (
     QgsFeature,
-    QgsField,
     QgsGeometry,
     QgsPointXY,
-    QgsVectorLayer,
     QgsCoordinateReferenceSystem
 )
 
@@ -28,7 +26,7 @@ from ....mathgeo_utils.coordinates import (
 )
 from ...terrain_utils import z_at_3d_line, simplify_profile
 
-from ....geoprocessing_utils.layers import create_waypoints_layer, create_flight_line, change_layer_style
+from ....geoprocessing_utils import create_waypoints_layer, create_flight_line, change_layer_style
 
 class WorkerTerrain(QObject):
     """Worker for 'Terrain Following'."""
@@ -60,7 +58,6 @@ class WorkerTerrain(QObject):
             strips_nr = int(self.layer.maximumValue(0))
             waypoint_nr = 1
             progress_c = 0
-            # step = max(1, strips_nr // 1000)
             step = strips_nr // 1000
             for strip_nr in range(1, strips_nr + 1):
                 if self.killed:
@@ -211,7 +208,6 @@ class WorkerTerrain(QObject):
                     self.layer.commitChanges()
             waypoint_nr += 1
 
-        # ostatni punkt
         end_w = waypoints_coords[-1]
         feat_waypnt = QgsFeature()
         feat_waypnt.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(end_w[0], end_w[1])))

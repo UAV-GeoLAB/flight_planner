@@ -1,7 +1,7 @@
 from math import acos, sqrt, pi
 import numpy as np
 import matplotlib.path as mpltPath
-from ..mathgeo_utils.coordinates import pixel2crs, lines_intersection, line
+from .mathgeo_utils.coordinates import pixel2crs, lines_intersection, line
 
 def points_pixel_centroids(geotransform, shape):
     """Return pixel centroids for the raster."""

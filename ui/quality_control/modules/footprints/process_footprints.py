@@ -11,8 +11,8 @@ from .....mathgeo_utils.algebra import rotation_matrix
 from .utils import clip_raster, image_edge_points, ground_edge_points
 from .styles import footprint_props
 from scipy import ndimage
-from .....geoprocessing_utils.layers import change_layer_style
-from .....photogrammetry_utils.geometry import overlap_photo, gsd
+from .....geoprocessing_utils import change_layer_style
+from .....geometry_utils import overlap_photo, gsd
 
 
 def process_footprints(worker):
