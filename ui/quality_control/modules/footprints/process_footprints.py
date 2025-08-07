@@ -6,13 +6,13 @@ from qgis.core import (
     QgsGeometry,
     QgsCoordinateReferenceSystem
 )
-from .....mathgeo.coordinates import transf_coord, crs2pixel
-from .....mathgeo.algebra import rotation_matrix
+from .....mathgeo_utils.coordinates import transf_coord, crs2pixel
+from .....mathgeo_utils.algebra import rotation_matrix
 from .utils import clip_raster, image_edge_points, ground_edge_points
 from .styles import footprint_props
 from scipy import ndimage
-from .....geoprocessing.layers import change_layer_style
-from .....photogrammetry.geometry import overlap_photo, gsd
+from .....geoprocessing_utils.layers import change_layer_style
+from .....photogrammetry_utils.geometry import overlap_photo, gsd
 
 
 def process_footprints(worker):

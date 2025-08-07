@@ -3,7 +3,7 @@ from qgis.analysis import QgsZonalStatistics
 from qgis import processing
 from math import ceil, fabs, isnan
 from pyproj import Transformer
-from ..mathgeo.coordinates import transf_coord
+from ..mathgeo_utils.coordinates import transf_coord
 from ..error_reporting import QgsMessBox
 
 

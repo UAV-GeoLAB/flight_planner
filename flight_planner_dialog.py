@@ -5,7 +5,7 @@ from .ui.terrain_section import TerrainSectionHandler
 from .ui.direction_section import DirectionSectionHandler
 import os
 from .error_reporting import QgsPrint, QgsTraceback, QgsMessBox
-from .geoprocessing.layers import add_to_canvas, find_matching_field
+from .geoprocessing_utils.layers import add_to_canvas, find_matching_field
 from osgeo import gdal
 from qgis.core import (
     QgsMapLayerProxyModel, 

@@ -1,4 +1,4 @@
-from ....mathgeo.coordinates import lines_intersection
+from ....mathgeo_utils.coordinates import lines_intersection
 
 from math import (
     atan2,

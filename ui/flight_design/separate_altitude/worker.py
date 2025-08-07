@@ -10,12 +10,12 @@ from qgis.core import (
 )
 from pyproj import Transformer
 
-from ....mathgeo.coordinates import (
+from ....mathgeo_utils.coordinates import (
     transf_coord,
 )
 
-from ....geoprocessing.analysis import raster_minmax_in_vector
-from ....geoprocessing.layers import create_flight_line, create_waypoints, change_layer_style
+from ....geoprocessing_utils.analysis import raster_minmax_in_vector
+from ....geoprocessing_utils.layers import create_flight_line, create_waypoints, change_layer_style
 
 
 class WorkerSeparate(QObject):

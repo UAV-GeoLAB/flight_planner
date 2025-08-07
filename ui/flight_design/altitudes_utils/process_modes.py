@@ -1,6 +1,6 @@
 from math import atan, pi, fabs, sqrt, atan2
-from ....mathgeo.algebra import bounding_box_at_angle
-from ....mathgeo.coordinates import line
+from ....mathgeo_utils.algebra import bounding_box_at_angle
+from ....mathgeo_utils.coordinates import line
 from .projection_centres import strips_projection_centres_number, projection_centres
 from ._annotation import annotate_segment_features
 from ....error_reporting import QgsPrint, QgsMessBox

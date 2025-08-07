@@ -22,13 +22,13 @@ from qgis.core import (
 
 from PyQt5.QtWidgets import QApplication
 
-from ....mathgeo.coordinates import (
+from ....mathgeo_utils.coordinates import (
     crs2pixel,
     transf_coord
 )
 from ...terrain_utils import z_at_3d_line, simplify_profile
 
-from ....geoprocessing.layers import create_waypoints_layer, create_flight_line, change_layer_style
+from ....geoprocessing_utils.layers import create_waypoints_layer, create_flight_line, change_layer_style
 
 class WorkerTerrain(QObject):
     """Worker for 'Terrain Following'."""
