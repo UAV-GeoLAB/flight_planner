@@ -2,7 +2,7 @@ from qgis.core import QgsRasterLayer, QgsVectorLayer
 from PyQt5.QtCore import pyqtSlot
 
 from ..error_reporting import QgsMessBox
-from .terrain_utils import create_buffer_around_line, minmaxheight
+from .terrain_utils import create_buffer_around_line, clipped_raster_minmax
 
 
 class TerrainSectionHandler:
@@ -56,7 +56,7 @@ class TerrainSectionHandler:
                 return
 
         try:
-            h_min, h_max = minmaxheight(vector_for_stats, self.dtm)
+            h_min, h_max = clipped_raster_minmax(vector_for_stats, self.dtm)
             self.dlg.doubleSpinBoxMinHeight.setValue(h_min)
             self.dlg.doubleSpinBoxMaxHeight.setValue(h_max)
         except Exception as e:

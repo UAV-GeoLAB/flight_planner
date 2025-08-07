@@ -1,7 +1,6 @@
 from qgis.core import QgsRasterLayer, QgsColorRampShader, QgsRasterShader, QgsSingleBandPseudoColorRenderer, QgsRasterBandStats, QgsProcessingUtils
 from PyQt5.QtGui import QColor
 from osgeo import gdal, osr
-from .....functions import crs2pixel
 import numpy as np
 import os
 from .styles import create_overlay_renderer

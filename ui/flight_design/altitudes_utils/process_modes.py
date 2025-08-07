@@ -1,11 +1,12 @@
 from math import atan, pi, fabs, sqrt, atan2
-from qgis import processing
-from ....functions import bounding_box_at_angle, projection_centres, corridor_flight_numbering, line
+from ....mathgeo.algebra import bounding_box_at_angle
+from ....mathgeo.coordinates import line
+from .projection_centres import strips_projection_centres_number, projection_centres
 from ._annotation import annotate_segment_features
 from ....error_reporting import QgsPrint, QgsMessBox
+from qgis import processing
 from qgis.core import QgsField, QgsCoordinateReferenceSystem
 from PyQt5.QtCore import QVariant
-
 
 def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     """Get projection centres and photos layer from AoI"""
@@ -119,3 +120,86 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     theta = fabs(atan2(len_across / 2, len_along / 2))
     dist = sqrt((len_along / 2) ** 2 + (len_across / 2) ** 2)
     return pc_lay, photo_lay, line_buf_list, theta, dist
+
+
+def corridor_flight_numbering(feats_exp_lines, buff_exp_lines, Bx, By,
+    len_across, mult_base, x_percent, segments):
+    """Return dictionary with number of strips and photos
+    for each segment of corridor flight."""
+    nr_photos_in_strip = {}
+    for feat_exp in feats_exp_lines:
+        x_start = feat_exp.geometry().asPolyline()[0].x()
+        y_start = feat_exp.geometry().asPolyline()[0].y()
+        x_end = feat_exp.geometry().asPolyline()[1].x()
+        y_end = feat_exp.geometry().asPolyline()[1].y()
+        a_line, b_line = line(y_start, y_end, x_start, x_end)
+        angle = atan(a_line) * 180 / pi
+
+        if angle < 0:
+            angle = angle + 180
+        if y_end - y_start < 0:
+            angle = angle + 180
+
+        featbuff_exp = buff_exp_lines.getFeature(feat_exp.id())
+        geom_line_buf = featbuff_exp.geometry()
+        a, b, a2, b2, Dx, Dy = bounding_box_at_angle(angle, geom_line_buf)
+        Nx, Ny = strips_projection_centres_number(Dx, Dy, Bx, By,
+            len_across, mult_base, x_percent)
+        Nx = Nx - 2
+
+        nr_photos_in_strip[f"segment_{feat_exp.id()}"] = Nx
+
+    photo = 1
+    strip = 1
+    all_directions = []
+    for direction in range(1, Ny+1):
+        if direction % 2 != 0:
+            last_strip, last_photo, strips_in_direction = forward(strip,
+                photo, nr_photos_in_strip)
+            strip = last_strip
+            photo = last_photo
+        else:
+            last_strip, last_photo, strips_in_direction = backward(strip,
+                photo, nr_photos_in_strip)
+            strip = last_strip
+            photo = last_photo
+        all_directions.append(strips_in_direction)
+
+    ordered_segments = {}
+    for n in range(1, segments+1):
+        segment_list = [d[f'segment_{n}'] for d in all_directions]
+        segment_dict = {}
+        for strip in segment_list:
+            segment_dict.update(strip)
+        ordered_segments[f'segment_{n}'] = segment_dict
+        
+    return ordered_segments
+
+def forward(strip, photo, nr_photos_in_strip):
+    """Return dictionary with strip and photo numbers
+    for the forward direction of corridor flight."""
+    strips_forward = {}
+    for seg, n in nr_photos_in_strip.items():
+        photos = []
+        for _ in range(1, n + 1):
+            photos.append(photo)
+            photo += 1
+        strips_forward[seg] = {strip: photos}
+        strip += 1
+
+    return strip, photo, strips_forward
+
+
+def backward(strip, photo, nr_photos_in_strip):
+    """Return dictionary with strip and photo numbers
+    for the backward direction of corridor flight."""
+    strips_backward = {}
+    for seg, n in reversed(nr_photos_in_strip.items()):
+        photos = []
+        for _ in range(1, n + 1):
+            photos.append(photo)
+            photo += 1
+        strips_backward[seg] = {strip: photos[::-1]}
+        strip += 1
+
+    return strip, photo, strips_backward

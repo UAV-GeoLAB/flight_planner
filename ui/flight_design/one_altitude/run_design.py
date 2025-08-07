@@ -1,5 +1,4 @@
 from ....error_reporting import QgsTraceback
-from ....functions import *
 from ..altitudes_utils.inputs_validation import validate_inputs
 from ..altitudes_utils.initialization import initialize_design_environment
 from ..altitudes_utils.flight_parameters import calculate_flight_parameters

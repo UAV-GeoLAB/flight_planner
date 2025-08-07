@@ -1,5 +1,5 @@
 import os
-from ....error_reporting import QgsTraceback, QgsPrint
+from ....error_reporting import QgsPrint
 import numpy as np
 from PyQt5.QtCore import QObject, pyqtSignal
 from qgis.core import (
@@ -7,17 +7,15 @@ from qgis.core import (
     QgsFeature,
     QgsGeometry,
     QgsPointXY,
-    QgsProject,
 )
 from pyproj import Transformer
 
-from ....functions import (
-    create_flight_line,
-    create_waypoints,
-    change_layer_style,
+from ....mathgeo.coordinates import (
     transf_coord,
-    minmaxheight
 )
+
+from ....geoprocessing.analysis import raster_minmax_in_vector
+from ....geoprocessing.layers import create_flight_line, create_waypoints, change_layer_style
 
 
 class WorkerSeparate(QObject):
@@ -134,7 +132,7 @@ class WorkerSeparate(QObject):
                 prov_com = common_lay.dataProvider()
                 prov_com.addFeature(feat_strip)
 
-                h_min, h_max = minmaxheight(common_lay, self.DTM)
+                h_min, h_max = raster_minmax_in_vector(common_lay, self.DTM)
                 avg_terrain_height = h_max - (h_max - h_min) / 3
                 altitude_ASL = self.altitude_AGL + avg_terrain_height
 

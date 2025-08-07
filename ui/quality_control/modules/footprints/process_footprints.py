@@ -6,27 +6,24 @@ from qgis.core import (
     QgsGeometry,
     QgsCoordinateReferenceSystem
 )
-from .....functions import (
-    rotation_matrix,
-    transf_coord,
-    crs2pixel,
-    image_edge_points,
-    ground_edge_points,
-    change_layer_style,
-    overlap_photo,
-    gsd
-)
-from .utils import clip_raster
+from .....mathgeo.coordinates import transf_coord, crs2pixel
+from .....mathgeo.algebra import rotation_matrix
+from .utils import clip_raster, image_edge_points, ground_edge_points
 from .styles import footprint_props
 from scipy import ndimage
+from .....geoprocessing.layers import change_layer_style
+from .....photogrammetry.geometry import overlap_photo, gsd
+
 
 def process_footprints(worker):
     """Quality Control: Process footprints layer"""
     transf_vct_rst = transf_rst_vct = None
     if worker.crs_rst != worker.crs_vct:
         from pyproj import Transformer
-        transf_vct_rst = Transformer.from_crs(worker.crs_vct, worker.crs_rst, always_xy=True)
-        transf_rst_vct = Transformer.from_crs(worker.crs_rst, worker.crs_vct, always_xy=True)
+        transf_vct_rst = Transformer.from_crs(
+            worker.crs_vct, worker.crs_rst, always_xy=True)
+        transf_rst_vct = Transformer.from_crs(
+            worker.crs_rst, worker.crs_vct, always_xy=True)
 
     Z_srtm = worker.raster.GetRasterBand(1).ReadAsArray()
     nodata = worker.raster.GetRasterBand(1).GetNoDataValue()
@@ -37,14 +34,16 @@ def process_footprints(worker):
 
     if QgsCoordinateReferenceSystem(worker.crs_rst).isGeographic():
         uplx_v, uply_v = transf_coord(transf_rst_vct, uplx_r, uply_r)
-        uplx_v_n, uply_v_n = transf_coord(transf_rst_vct, uplx_r + xres_r, uply_r + yres_r)
+        uplx_v_n, uply_v_n = transf_coord(
+            transf_rst_vct, uplx_r + xres_r, uply_r + yres_r)
         xres_r = abs(uplx_v_n - uplx_v)
         yres_r = abs(uply_v_n - uply_v)
 
     mean_res = (abs(xres_r) + abs(yres_r)) / 2
 
     layer = worker.layer
-    footprint_lay = QgsVectorLayer("Polygon?crs=EPSG:2180", "footprints", "memory")
+    footprint_lay = QgsVectorLayer(
+        "Polygon?crs=EPSG:2180", "footprints", "memory")
     provider = footprint_lay.dataProvider()
 
     features = layer.getFeatures()
@@ -87,38 +86,47 @@ def process_footprints(worker):
         else:
             c, r = crs2pixel(clipped_geot, Xs, Ys)
 
-        Z_under_pc = ndimage.map_coordinates(clipped_DTM, np.array([[r, c]]).T)[0]
+        Z_under_pc = ndimage.map_coordinates(
+            clipped_DTM, np.array([[r, c]]).T)[0]
 
         xyf = image_edge_points(worker.camera, Z_under_pc, Zs, mean_res)
         footprint_vertices = ground_edge_points(R, Z_under_pc, worker.threshold, xyf,
                                                 Xs, Ys, Zs, clipped_DTM, clipped_geot,
                                                 worker.crs_rst, worker.crs_vct, transf_vct_rst)
 
-        geom_footprint = QgsGeometry.fromPolygonXY([[QgsPointXY(x, y) for x, y in footprint_vertices]])
+        geom_footprint = QgsGeometry.fromPolygonXY(
+            [[QgsPointXY(x, y) for x, y in footprint_vertices]])
         feat_footprint.setGeometry(geom_footprint)
         provider.addFeatures([feat_footprint])
         footprint_lay.updateExtents()
 
         if worker.overlap_bool or worker.gsd_bool:
             if worker.crs_vct != worker.crs_rst:
-                X_rast, Y_rast = transf_coord(transf_vct_rst, footprint_vertices[:, 0], footprint_vertices[:, 1])
-                footprint_vertices = np.hstack((X_rast.reshape((-1, 1)), Y_rast.reshape((-1, 1))))
+                X_rast, Y_rast = transf_coord(
+                    transf_vct_rst, footprint_vertices[:, 0], footprint_vertices[:, 1])
+                footprint_vertices = np.hstack(
+                    (X_rast.reshape((-1, 1)), Y_rast.reshape((-1, 1))))
 
-            overlap_arr, overlap_geot = overlap_photo(footprint_vertices, clipped_geot, clipped_DTM.shape)
+            overlap_arr, overlap_geot = overlap_photo(
+                footprint_vertices, clipped_geot, clipped_DTM.shape)
 
-            deltac = int(abs(round((clipped_geot[0] - overlap_geot[0]) / overlap_geot[1])))
-            deltar = int(abs(round((clipped_geot[3] - overlap_geot[3]) / overlap_geot[5])))
-            fitted_DTM = clipped_DTM[deltar:overlap_arr.shape[0]+deltar, deltac:overlap_arr.shape[1]+deltac]
+            deltac = int(
+                abs(round((clipped_geot[0] - overlap_geot[0]) / overlap_geot[1])))
+            deltar = int(
+                abs(round((clipped_geot[3] - overlap_geot[3]) / overlap_geot[5])))
+            fitted_DTM = clipped_DTM[deltar:overlap_arr.shape[0] +
+                                     deltar, deltac:overlap_arr.shape[1]+deltac]
 
             projection_center = np.array([[Xs], [Ys], [Zs]])
             img_coords = np.array([[0], [0], [-worker.camera.focal_length]])
             image_crs = projection_center + np.dot(R, img_coords)
             X, Y, Z = image_crs.flatten()
 
+            gsd_array = gsd(fitted_DTM, overlap_geot, Xs, Ys, Zs, X, Y,
+                            Z, worker.camera.focal_length, worker.camera.sensor_size)
 
-            gsd_array = gsd(fitted_DTM, overlap_geot, Xs, Ys, Zs, X, Y, Z, worker.camera.focal_length, worker.camera.sensor_size)
-
-            gsd_masked = np.where(gsd_array * overlap_arr == 0, 1000, gsd_array * overlap_arr)
+            gsd_masked = np.where(gsd_array * overlap_arr ==
+                                  0, 1000, gsd_array * overlap_arr)
             ds_list.append([gsd_masked, overlap_arr, overlap_geot])
 
             upx, xres, xskew, upy, yskew, yres = overlap_geot

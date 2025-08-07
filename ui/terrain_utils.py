@@ -3,7 +3,7 @@ from qgis.analysis import QgsZonalStatistics
 from qgis import processing
 from math import ceil, fabs, isnan
 from pyproj import Transformer
-from ..functions import transf_coord
+from ..mathgeo.coordinates import transf_coord
 from ..error_reporting import QgsMessBox
 
 
@@ -91,7 +91,45 @@ def is_poligon_inside_raster(vlayer, dtm_layer):
 
     return list(vlayer.getFeatures())
 
-def minmaxheight(vlayer, dtm_layer):
+def z_at_3d_line(pnt, start_pnt, end_pnt):
+    """Return "z" coordinate for point with known x,y
+    lying on line in space defined by start and end points.
+    """
+    x1, y1, z1 = start_pnt
+    x2, y2, z2 = end_pnt
+    x, y = pnt[:2]
+
+    if x1 != x2:
+        t = (x - x1) / (x2 - x1)
+    else:
+        t = (y - y1) / (y2 - y1)
+    z = t * (z2 - z1) + z1
+    return z
+
+
+def simplify_profile(vertices, epsilon):
+    """Reduces the number of vertices in the line, keeping its main shape.
+    It is based on the Douglas-Peucker simplification algorithm but
+    with the vertical distance instead of perpendicular.
+    """
+    hmax = 0.0
+    index = 0
+    for i in range(1, len(vertices) - 1):
+        z = z_at_3d_line(vertices[i], vertices[0], vertices[-1])
+        h = abs(z - vertices[i][2])
+        if h > hmax:
+            index = i
+            hmax = h
+
+    if hmax >= epsilon:
+        results = simplify_profile(vertices[:index+1], epsilon)[:-1]\
+                  + simplify_profile(vertices[index:], epsilon)
+    else:
+        results = [vertices[0], vertices[-1]]
+
+    return results
+
+def clipped_raster_minmax(vlayer, dtm_layer):
     """Calculates minimum and maximum elevation values from DTM"""
     features_inside = is_poligon_inside_raster(vlayer, dtm_layer)
     temp_layer = QgsVectorLayer(f"Polygon?crs={vlayer.crs().authid()}", "temp", "memory")
@@ -121,3 +159,5 @@ def minmaxheight(vlayer, dtm_layer):
         raise ValueError("Could not determine min/max values from raster.")
     
     return gmin, gmax
+
+
