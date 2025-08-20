@@ -26,7 +26,7 @@ def initialize_design_environment(ui):
     if ui.tabBlock:
         is_poligon_inside_raster(ui.AreaOfInterest, ui.DTM)
     elif ui.tabCorridor:
-        is_poligon_inside_raster(ui.pathLine, ui.DTM)
+        is_poligon_inside_raster(ui.CorLine, ui.DTM)
     ui.pushButtonCancelDesign.setVisible(True)
     ui.progressBar.setFormat("%p%")
     ui.progressBar.setValue(0)
