@@ -4,6 +4,7 @@ from osgeo import gdal, osr
 import numpy as np
 import os
 from .styles import create_overlay_renderer
+from .....mathgeo_utils.coordinates import crs2pixel 
 
 def process_overlap(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xres, yres):
     """Quality Control: Process overlapping layer"""
