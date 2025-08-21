@@ -6,7 +6,7 @@ from ._annotation import annotate_segment_features
 from ....error_reporting import QgsPrint, QgsMessBox
 from qgis import processing
 from qgis.core import QgsField, QgsCoordinateReferenceSystem
-from PyQt5.QtCore import QVariant
+from PyQt5.QtCore import QMetaType
 
 def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     """Get projection centres and photos layer from AoI"""
@@ -100,7 +100,7 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
         )
         pc_lay.startEditing()
         photo_lay.startEditing()
-        pc_lay.addAttribute(QgsField("BuffNr", QVariant.Int))
+        pc_lay.addAttribute(QgsField("BuffNr", QMetaType.Int))
 
         annotate_segment_features(pc_lay, photo_lay, ordered_segments[f'segment_{segment_nr}'], segment_nr)
         pc_lay_list.append(pc_lay)
