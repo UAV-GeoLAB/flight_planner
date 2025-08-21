@@ -19,6 +19,7 @@ from qgis.core import (
     QgsGeometry,
     QgsPointXY,
     QgsVectorLayer,
+    Qgis
 )
 
 
@@ -54,28 +55,35 @@ def calculate_offsets(alpha, a_ll, b_ll, a_l_, b_l_, Dx, Dy, Bx, By, Ly, m, x):
 
 
 def create_layers(crs_vect):
+    if Qgis.QGIS_VERSION_INT >= 33800:
+        t_str = QMetaType.QString
+        t_dbl = QMetaType.Double
+    else:
+        t_str = QVariant.String
+        t_dbl = QVariant.Double
+
     pc_layer = QgsVectorLayer(
-        "Point?crs=" + str(crs_vect), "projection centres", "memory")
+        f"Point?crs={crs_vect}", "projection_centres", "memory")
     pr = pc_layer.dataProvider()
     pr.addAttributes([
-        QgsField("Strip", QMetaType.QString),
-        QgsField("Photo Number", QMetaType.QString),
-        QgsField("X [m]", QMetaType.Double),
-        QgsField("Y [m]", QMetaType.Double),
-        QgsField("Alt. ASL [m]", QMetaType.Double),
-        QgsField("Alt. AGL [m]", QMetaType.Double),
-        QgsField("Omega [deg]", QMetaType.Double),
-        QgsField("Phi [deg]", QMetaType.Double),
-        QgsField("Kappa [deg]", QMetaType.Double),
+        QgsField("Strip", t_str),
+        QgsField("Photo Number", t_str),
+        QgsField("X [m]", t_dbl),
+        QgsField("Y [m]", t_dbl),
+        QgsField("Alt. ASL [m]", t_dbl),
+        QgsField("Alt. AGL [m]", t_dbl),
+        QgsField("Omega [deg]", t_dbl),
+        QgsField("Phi [deg]", t_dbl),
+        QgsField("Kappa [deg]", t_dbl),
     ])
     pc_layer.updateFields()
 
     photo_layer = QgsVectorLayer(
-        "Polygon?crs=" + str(crs_vect), "photos", "memory")
+        f"Polygon?crs={crs_vect}", "photos", "memory")
     prov_photos = photo_layer.dataProvider()
     prov_photos.addAttributes([
-        QgsField("Strip", QMetaType.QString),
-        QgsField("Photo Number", QMetaType.QString)
+        QgsField("Strip", t_str),
+        QgsField("Photo Number", t_str)
     ])
     photo_layer.updateFields()
 

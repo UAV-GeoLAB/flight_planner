@@ -5,8 +5,8 @@ from .projection_centres import strips_projection_centres_number, projection_cen
 from ._annotation import annotate_segment_features
 from ....error_reporting import QgsPrint, QgsMessBox
 from qgis import processing
-from qgis.core import QgsField, QgsCoordinateReferenceSystem
-from PyQt5.QtCore import QMetaType
+from qgis.core import QgsField, QgsCoordinateReferenceSystem, Qgis
+from PyQt5.QtCore import QMetaType, QVariant
 
 def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     """Get projection centres and photos layer from AoI"""
@@ -100,7 +100,12 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
         )
         pc_lay.startEditing()
         photo_lay.startEditing()
-        pc_lay.addAttribute(QgsField("BuffNr", QMetaType.Int))
+
+        if Qgis.QGIS_VERSION_INT >= 33800:
+            t_int = QMetaType.Int
+        else:
+            t_int = QVariant.Int
+        pc_lay.addAttribute(QgsField("BuffNr", t_int))
 
         annotate_segment_features(pc_lay, photo_lay, ordered_segments[f'segment_{segment_nr}'], segment_nr)
         pc_lay_list.append(pc_lay)

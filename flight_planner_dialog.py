@@ -11,7 +11,8 @@ from qgis.core import (
     QgsMapLayerProxyModel, 
     QgsFieldProxyModel, 
     QgsCoordinateReferenceSystem, 
-    QgsProject
+    QgsProject,
+    Qgis
 )
 from .ui.flight_design.one_altitude.run_design import run_design_one_altitude
 from .ui.flight_design.separate_altitude.run_design import run_design_separate_altitude
@@ -27,6 +28,8 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
+        if Qgis.QGIS_VERSION_INT < 33800:
+            gdal.UseExceptions()
         super().__init__(parent)
         self.setupUi(self)
         self.tabWidget.setCurrentIndex(0)
