@@ -236,7 +236,7 @@ class WorkerTerrain(QObject):
         change_layer_style(self.layer, {'size': '1.0'})
 
         self.layer_pol.setName('photos')
-        self.layer.setName('projection centres')
+        self.layer.setName('projection_centres')
 
         waypoints_layer.setCrs(QgsCoordinateReferenceSystem(self.epsg_code))
         flight_line.setCrs(QgsCoordinateReferenceSystem(self.epsg_code))

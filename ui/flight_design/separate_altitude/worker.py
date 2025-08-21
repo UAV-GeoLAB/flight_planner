@@ -189,7 +189,7 @@ class WorkerSeparate(QObject):
                 change_layer_style(self.layer, {'size': '1.0'})
                 self.layer_pol.setName('photos')
                 self.layer_pol.setCrs(self.crs_vct)
-                self.layer.setName('projection centres')
+                self.layer.setName('projection_centres')
                 self.layer.setCrs(self.crs_vct)
 
                 result.extend([self.layer, flight_line, waypoints_layer, self.layer_pol])

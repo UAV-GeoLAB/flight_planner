@@ -25,7 +25,7 @@ def prepare_and_style_layers(ui, pc_lay, photo_lay):
     change_layer_style(pc_lay, {'size': '1.0'})
 
     photo_lay.setName('photos')
-    pc_lay.setName('projection centres')
+    pc_lay.setName('projection_centres')
 
     add_to_canvas([pc_lay, flight_line, waypoints_layer, photo_lay], "flight_design", ui.design_run_counter)
     ui.design_run_counter += 1
