@@ -1,10 +1,11 @@
-from qgis.core import QgsRasterLayer, QgsColorRampShader, QgsRasterShader, QgsSingleBandPseudoColorRenderer, QgsRasterBandStats, QgsProcessingUtils
+from qgis.core import QgsRasterLayer, QgsColorRampShader, QgsRasterShader, QgsSingleBandPseudoColorRenderer, QgsRasterBandStats, QgsProcessingUtils, Qgis
 from PyQt5.QtGui import QColor
 from osgeo import gdal, osr
 import numpy as np
 import os
 from .styles import create_overlay_renderer
-from .....mathgeo_utils.coordinates import crs2pixel 
+from .....mathgeo_utils.coordinates import crs2pixel
+import uuid
 
 def process_overlap(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xres, yres):
     """Quality Control: Process overlapping layer"""
@@ -29,7 +30,11 @@ def process_overlap(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xre
         rows, cols = overlay_array.shape
         final_overlay[r:r+rows, c:c+cols] += overlay_array
 
-    tmp_overlay = os.path.join(QgsProcessingUtils.tempFolder(), 'overlay.tif')
+    tmp_overlay = os.path.join(
+        QgsProcessingUtils.tempFolder(),
+        f'overlay_{uuid.uuid4().hex}.tif'
+    )
+
     driver = gdal.GetDriverByName('GTiff')
     ds_overlay = driver.Create(tmp_overlay, xsize=cols_fp, ysize=rows_fp, bands=1, eType=gdal.GDT_Float32)
     ds_overlay.GetRasterBand(1).WriteArray(final_overlay)
@@ -38,14 +43,29 @@ def process_overlap(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xre
 
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(int(worker.crs_rst.split(":")[1]))
-    srs.SetWellKnownGeogCS(worker.crs_rst)
+    #srs.SetWellKnownGeogCS(worker.crs_rst)
     ds_overlay.SetProjection(srs.ExportToWkt())
     ds_overlay = None
 
     overlay_layer = QgsRasterLayer(tmp_overlay, "overlapping")
     overlay_pr = overlay_layer.dataProvider()
-    stats = overlay_pr.bandStatistics(1, QgsRasterBandStats.All)
-    max_v = stats.maximumValue
+    block = overlay_pr.block(1, overlay_layer.extent(), overlay_layer.width(), overlay_layer.height())
+    
+    max_v = float('-inf')
+    has_data = False
+    no_data_value = overlay_pr.sourceNoDataValue(1)
+    
+    for row in range(block.height()):
+        for col in range(block.width()):
+            value = block.value(row, col)
+            if value != no_data_value and not np.isnan(value):
+                has_data = True
+                if value > max_v:
+                    max_v = value
+    
+    if not has_data:
+        max_v = 1.0
+
 
     renderer = create_overlay_renderer(overlay_pr, max_v)
     overlay_layer.setRenderer(renderer)
