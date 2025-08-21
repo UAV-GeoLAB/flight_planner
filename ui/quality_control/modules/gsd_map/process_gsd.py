@@ -4,6 +4,8 @@ import numpy as np
 import os
 from .styles import apply_gsd_style
 from .....mathgeo_utils.coordinates import crs2pixel
+import uuid
+
 def process_gsd(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xres, yres):
     """Quality Control: Process gsd_map layer"""
     ulx_fp = min(ulx_list)
@@ -27,7 +29,10 @@ def process_gsd(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xres, y
         rows, cols = overlay_array.shape
         final_gsd[r:r+rows, c:c+cols] = np.minimum(final_gsd[r:r+rows, c:c+cols], gsd_array)
 
-    temp_gsd = os.path.join(QgsProcessingUtils.tempFolder(), 'gsd.tif')
+    temp_gsd = os.path.join(
+        QgsProcessingUtils.tempFolder(),
+        f'gsd_{uuid.uuid4().hex}.tif'
+    )
     driver = gdal.GetDriverByName('GTiff')
     ds_gsd = driver.Create(temp_gsd, xsize=cols_fp, ysize=rows_fp, bands=1, eType=gdal.GDT_Float32)
     ds_gsd.GetRasterBand(1).WriteArray(final_gsd)
@@ -36,7 +41,7 @@ def process_gsd(worker, ds_list, ulx_list, uly_list, lrx_list, lry_list, xres, y
 
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(int(worker.crs_rst.split(":")[1]))
-    srs.SetWellKnownGeogCS(worker.crs_rst)
+    #srs.SetWellKnownGeogCS(worker.crs_rst)
     ds_gsd.SetProjection(srs.ExportToWkt())
     ds_gsd = None
 
