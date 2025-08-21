@@ -12,7 +12,7 @@ from math import (
 
 )
 
-from PyQt5.QtCore import QVariant
+from PyQt5.QtCore import QMetaType, QVariant
 from qgis.core import (
     QgsFeature,
     QgsField,
@@ -58,15 +58,15 @@ def create_layers(crs_vect):
         "Point?crs=" + str(crs_vect), "projection centres", "memory")
     pr = pc_layer.dataProvider()
     pr.addAttributes([
-        QgsField("Strip", QVariant.String),
-        QgsField("Photo Number", QVariant.String),
-        QgsField("X [m]", QVariant.Double),
-        QgsField("Y [m]", QVariant.Double),
-        QgsField("Alt. ASL [m]", QVariant.Double),
-        QgsField("Alt. AGL [m]", QVariant.Double),
-        QgsField("Omega [deg]", QVariant.Double),
-        QgsField("Phi [deg]", QVariant.Double),
-        QgsField("Kappa [deg]", QVariant.Double)
+        QgsField("Strip", QMetaType.QString),
+        QgsField("Photo Number", QMetaType.QString),
+        QgsField("X [m]", QMetaType.Double),
+        QgsField("Y [m]", QMetaType.Double),
+        QgsField("Alt. ASL [m]", QMetaType.Double),
+        QgsField("Alt. AGL [m]", QMetaType.Double),
+        QgsField("Omega [deg]", QMetaType.Double),
+        QgsField("Phi [deg]", QMetaType.Double),
+        QgsField("Kappa [deg]", QMetaType.Double),
     ])
     pc_layer.updateFields()
 
@@ -74,8 +74,8 @@ def create_layers(crs_vect):
         "Polygon?crs=" + str(crs_vect), "photos", "memory")
     prov_photos = photo_layer.dataProvider()
     prov_photos.addAttributes([
-        QgsField("Strip", QVariant.String),
-        QgsField("Photo Number", QVariant.String)
+        QgsField("Strip", QMetaType.QString),
+        QgsField("Photo Number", QMetaType.QString)
     ])
     photo_layer.updateFields()
 
