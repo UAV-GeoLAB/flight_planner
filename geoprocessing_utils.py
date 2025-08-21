@@ -8,7 +8,7 @@ from qgis.core import (
     QgsVectorLayer
 )
 from qgis.analysis import QgsZonalStatistics
-from PyQt5.QtCore import QVariant
+from PyQt5.QtCore import QMetaType
 import re
 
 def add_to_canvas(layers, group_name, counter=1):
@@ -59,11 +59,13 @@ def create_waypoints_layer(crs_vect):
     waypoints_layer = QgsVectorLayer("Point?crs=" + str(crs_vect),
                               "waypoints", "memory")
     pr = waypoints_layer.dataProvider()
-    pr.addAttributes([QgsField("Waypoint Number", QVariant.Int),
-                    QgsField("X [m]", QVariant.Double),
-                    QgsField("Y [m]", QVariant.Double),
-                    QgsField("Alt. ASL [m]", QVariant.Double),
-                    QgsField("Alt. AGL [m]", QVariant.Double)])
+    pr.addAttributes([
+        QgsField("Waypoint Number", QMetaType.Int),
+        QgsField("X [m]", QMetaType.Double),
+        QgsField("Y [m]", QMetaType.Double),
+        QgsField("Alt. ASL [m]", QMetaType.Double),
+        QgsField("Alt. AGL [m]", QMetaType.Double)
+    ])
     waypoints_layer.updateFields()
     return pr, waypoints_layer
 
