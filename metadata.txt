@@ -1,5 +1,5 @@
 [general]
-name=Flight Planner - Refactored
+name=Flight Planner
 qgisMinimumVersion=3.30
 description=Flight Planner allows you to design photogrammetric flight. Plugin is also equipped in simple tools allowing to asses the flight project (or already done flight).
 version=1.0.0
