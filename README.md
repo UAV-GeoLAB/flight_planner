@@ -1,4 +1,4 @@
-The "Flight Planner" plugin was originally developed by https://github.com/JMG30 as part of a thesis project at AGH University of Science and Technology. In 2025, in agreement with the original author, a team from Warsaw University of Technology decided to perform a major code refactor and took over the maintenance and further development of the new version, now published as "Flight Planner – Refactored".
+The "Flight Planner" plugin was originally developed by https://github.com/JMG30 as part of a thesis project at AGH University of Science and Technology. In 2025, in agreement with the original author, a team from Warsaw University of Technology decided to perform a major code refactor and took over the maintenance and further development.
 
 # Flight Planner - refactored version
 
