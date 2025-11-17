@@ -38,7 +38,7 @@ class FlightPlanner:
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
-            'FlightPlannerPW_{}.qm'.format(locale))
+            'FlightPlanner_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -46,13 +46,13 @@ class FlightPlanner:
             QCoreApplication.installTranslator(self.translator)
 
         self.actions = []
-        self.menu = self.tr(u'&Flight Planner PW')
+        self.menu = self.tr(u'&Flight Planner')
 
         #self.first_start = None
         self.dlg = None
 
     def tr(self, message):
-        return QCoreApplication.translate('FlightPlannerPW', message)
+        return QCoreApplication.translate('FlightPlanner', message)
 
     def add_action(
         self,
@@ -89,10 +89,10 @@ class FlightPlanner:
         return action
 
     def initGui(self):
-        icon_path = ':/plugins/flight_planner_v1/icon.png'
+        icon_path = ':/plugins/flight_planner_wut/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Flight Planner PW'),
+            text=self.tr(u'Plan flight'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
@@ -101,7 +101,7 @@ class FlightPlanner:
     def unload(self):
         for action in self.actions:
             self.iface.removePluginMenu(
-                self.tr(u'&Flight Planner PW'),
+                self.tr(u'&Flight Planner'),
                 action)
             self.iface.removeToolBarIcon(action)
         if self.dlg:
