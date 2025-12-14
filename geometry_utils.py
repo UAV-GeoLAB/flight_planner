@@ -2,6 +2,7 @@ from math import acos, sqrt, pi
 import numpy as np
 import matplotlib.path as mpltPath
 from .mathgeo_utils.coordinates import pixel2crs, lines_intersection, line
+from .error_reporting import QgsMessBox
 
 def points_pixel_centroids(geotransform, shape):
     """Return pixel centroids for the raster."""
@@ -41,6 +42,12 @@ def overlap_photo(footprint_vertices, geotransform, clipped_DTM_shape):
 
     logical_array = centroids_inside.reshape((clipped_DTM_shape[0], -1))
 
+    indices = np.argwhere(logical_array > 0)
+    if indices.size == 0:
+        raise Exception("Photo footprint does not contain DTM pixel centroids.")
+
+    max_row, max_col = indices.max(axis=0)
+    min_row, min_col = indices.min(axis=0)
     max_row, max_col = np.argwhere(logical_array > 0).max(axis=0)
     min_row, min_col = np.argwhere(logical_array > 0).min(axis=0)
 

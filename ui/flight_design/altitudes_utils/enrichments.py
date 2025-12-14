@@ -7,7 +7,13 @@ def enrich_projection_centres_with_agl(ui, pc_lay):
         return
 
     if ui.crs_rst != ui.crs_vct:
-        transf_vct_rst = Transformer.from_crs(ui.crs_vct.authid(), ui.crs_rst.authid(), always_xy=True)
+        crs_from = ui.crs_vct.authid()
+        crs_to = ui.crs_rst.authid()
+
+        if not crs_to:
+            crs_to = ui.crs_rst.toWkt()
+        
+        transf_vct_rst = Transformer.from_crs(crs_from, crs_to, always_xy=True)
 
     feats = pc_lay.getFeatures()
     pc_lay.startEditing()
