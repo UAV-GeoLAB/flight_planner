@@ -105,8 +105,8 @@ def image_edge_points(camera, Z, Zs, mean_res):
     Ly = camera.pixels_across_track * camera.sensor_size * W / camera.focal_length
     Lx = camera.pixels_along_track * camera.sensor_size * W / camera.focal_length
     # number of points along the edges of the image
-    num_y = Ly / mean_res
-    num_x = Lx / mean_res
+    num_y = max(2, abs(int(Ly / mean_res)))
+    num_x = max(2, abs(int(Lx / mean_res)))
 
     # max x and y coordinate of the image
     x_max = camera.sensor_size * camera.pixels_along_track / 2
