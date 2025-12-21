@@ -70,8 +70,9 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
         try:
             self.epsg_code = QgsProject.instance().crs().authid()
             crs = QgsCoordinateReferenceSystem(self.epsg_code)
+            self.validate_crs(crs)
         except Exception:
-            self.epsg_code = "EPSG:2180"
+            self.epsg_code = "EPSG:3857"
             crs = QgsCoordinateReferenceSystem(self.epsg_code)
         self.crsSelector.setCrs(crs)
 
@@ -186,6 +187,28 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def on_pushButtonRunDesign_clicked(self):
         """Start proper type of altitude after clicking Run button"""
+        technical_names = ["Reprojected AoI Layer", 
+                           "Reprojected Corridor Layer",
+                           "Reprojected DTM Layer"]
+        for name in technical_names:
+            layers = QgsProject.instance().mapLayersByName(name)
+            for lyr in layers:
+                QgsProject.instance().removeMapLayer(lyr.id())
+
+        self.DTM = self.mMapLayerComboBoxDTM.currentLayer()
+
+        if self.tabBlock:
+            self.AreaOfInterest = self.mMapLayerComboBoxAoI.currentLayer()
+        elif self.tabCorridor:
+            self.CorLine = self.mMapLayerComboBoxCorridor.currentLayer()
+
+        if not self.DTM:
+            QgsMessBox('Missing Data', 'Please select a DTM layer.')
+            return
+        
+        if (self.tabBlock and not self.AreaOfInterest) or (self.tabCorridor and not self.CorLine):
+            QgsMessBox('Missing Data', 'Please select a Vector layer (AoI or Corridor).')
+            return
         altitude_type = self.comboBoxAltitudeType.currentText()
         try:
             if altitude_type == 'One Altitude ASL For Entire Flight':
@@ -198,11 +221,22 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             QgsTraceback()
             self.pushButtonCancelDesign.setVisible(False)
     
+    def validate_crs(self, crs):
+        if crs.isGeographic():
+            QgsMessBox('Coordinate Reference System', 'Geographic Coordinate Systems are not supported.\n' \
+                                    'Result CRS set to EPSG:3857 (Pseudo-Mercator).')
+            self.epsg_code = "EPSG:3857"
+            merc = QgsCoordinateReferenceSystem(self.epsg_code)
+            self.crsSelector.setCrs(merc)
+            return merc
+        return crs       
+
     def on_crs_changed(self, crs):
         """Handle change of Coordinate Reference System"""
-        self.epsg_code = crs.authid()
-        self.crsSelector.setCrs(QgsCoordinateReferenceSystem(self.epsg_code))
-
+        valid_crs = self.validate_crs(crs)
+        if valid_crs:
+            self.epsg_code = valid_crs.authid()
+        
     def startWorker_updateAltitude(self, mode, **params):
         """Initialize Workers"""
         self.pushButtonRunDesign.setEnabled(False)
@@ -346,6 +380,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
                 return
             
         try:
+            self.raster = gdal.Open(self.DTM.source())
             threshold = self.doubleSpinBoxIterationThreshold.value()
             self.startWorker_control(
                 pointLayer=proj_centres,
@@ -354,8 +389,8 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
                 phiField=fields['Phi field'],
                 kappaField=fields['Kappa field'],
                 camera=self.camera_handler.camera,
-                crsVectorLayer=self.crs_vct_ctrl,
-                crsRasterLayer=self.crs_vct_ctrl, # ERROR
+                crsVectorLayer=proj_centres.crs().authid(),
+                crsRasterLayer=self.DTM.crs().authid(),
                 DTM=self.DTM,
                 raster=self.raster,
                 overlap=self.checkBoxOverlapImages.isChecked(),

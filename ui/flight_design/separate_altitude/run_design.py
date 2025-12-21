@@ -37,6 +37,7 @@ def run_design_separate_altitude(ui):
         if ui.tabCorridor:
             params['LineRangeList'] = line_buf_list
         else:
+            ui.geom_AoI = ui.AreaOfInterest.getFeatures().__next__().geometry()
             params['Range'] = ui.geom_AoI
 
         ui.startWorker_updateAltitude(mode="separate", **params)
