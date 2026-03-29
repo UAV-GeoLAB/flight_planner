@@ -3,7 +3,7 @@ name=Flight Planner
 qgisMinimumVersion=3.30
 qgisMaximumVersion=4.99
 description=Flight Planner allows you to design photogrammetric flight. Plugin is also equipped in simple tools allowing to asses the flight project (or already done flight).
-version=1.1.0
+version=1.2.0
 author=Szymon Węgliński - maintainer (WUT), Julia Białas - maintainer (WUT), Jakub Gruca - plugin author (AGH)
 email=szymon.weglinski.stud@pw.edu.pl
 
@@ -14,7 +14,11 @@ repository=https://github.com/UAV-GeoLAB/flight_planner
 
 hasProcessingProvider=no
 
-changelog=1.1.0
+changelog=1.2.0
+    - upgraded plugin compatibility to QGIS 4.0.0
+    - fixed known bugs occuring raster transformations
+
+    1.1.0
     - validated CRS Selector
     - added flexible logic for non-geographic CRSes
     - fixed bug occuring while switching CRS in the Selector
