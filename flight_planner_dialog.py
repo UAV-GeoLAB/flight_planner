@@ -43,8 +43,8 @@ from .ui.flight_design.separate_altitude.run_design import run_design_separate_a
 from .ui.flight_design.terrain_following.run_design import run_design_terrain_following
 from .ui.flight_design.separate_altitude.worker import WorkerSeparate
 from .ui.flight_design.terrain_following.worker import WorkerTerrain
-from PyQt5.QtCore import QThread
-from PyQt5 import QtWidgets
+from qgis.PyQt.QtCore import QThread
+from qgis.PyQt import QtWidgets
 from .ui.quality_control.worker import WorkerControl
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -390,7 +390,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
                 kappaField=fields['Kappa field'],
                 camera=self.camera_handler.camera,
                 crsVectorLayer=proj_centres.crs().authid(),
-                crsRasterLayer=self.DTM.crs().authid(),
+                crsRasterLayer=self.DTM.crs().authid() or getattr(self, 'epsg_code', None),
                 DTM=self.DTM,
                 raster=self.raster,
                 overlap=self.checkBoxOverlapImages.isChecked(),
@@ -401,6 +401,7 @@ class FlightPlannerDialog(QtWidgets.QDialog, FORM_CLASS):
             )
             self.pushButtonRunControl.setEnabled(False)
         except Exception:
+            QgsMessBox(title='Error', text='Check Log Message Panel')
             QgsTraceback()
 
     def startWorker_control(self, **params):

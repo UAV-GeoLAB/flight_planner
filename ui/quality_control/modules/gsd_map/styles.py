@@ -1,5 +1,5 @@
 from qgis.core import QgsColorRampShader, QgsRasterShader, QgsSingleBandPseudoColorRenderer, QgsRasterBandStats, Qgis
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtGui import QColor
 import numpy as np
 
 def apply_gsd_style(gsd_layer):

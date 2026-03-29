@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QInputDialog
-from PyQt5.QtCore import pyqtSlot
+from qgis.PyQt.QtWidgets import QInputDialog
+from qgis.PyQt.QtCore import pyqtSlot
 from ..camera.models import Camera
 from ..camera.storage import delete_camera, load_cameras, add_new_camera
 from ..error_reporting import QgsMessBox

@@ -1,5 +1,5 @@
 from qgis.core import QgsRasterLayer, QgsColorRampShader, QgsRasterShader, QgsSingleBandPseudoColorRenderer, QgsRasterBandStats, QgsProcessingUtils, Qgis
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtGui import QColor
 from osgeo import gdal, osr
 import numpy as np
 import os

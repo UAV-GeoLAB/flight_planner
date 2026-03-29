@@ -12,7 +12,7 @@ from math import (
 
 )
 
-from PyQt5.QtCore import QMetaType, QVariant
+from qgis.PyQt.QtCore import QMetaType, QVariant
 from qgis.core import (
     QgsFeature,
     QgsField,
@@ -56,8 +56,8 @@ def calculate_offsets(alpha, a_ll, b_ll, a_l_, b_l_, Dx, Dy, Bx, By, Ly, m, x):
 
 def create_layers(crs_vect):
     if Qgis.QGIS_VERSION_INT >= 33800:
-        t_str = QMetaType.QString
-        t_dbl = QMetaType.Double
+        t_str = QMetaType.Type.QString
+        t_dbl = QMetaType.Type.Double
     else:
         t_str = QVariant.String
         t_dbl = QVariant.Double

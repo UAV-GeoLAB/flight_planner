@@ -13,6 +13,7 @@ from .styles import footprint_props
 from scipy import ndimage
 from .....geoprocessing_utils import change_layer_style
 from .....geometry_utils import overlap_photo, gsd
+from .....error_reporting import QgsPrint
 
 
 def process_footprints(worker):

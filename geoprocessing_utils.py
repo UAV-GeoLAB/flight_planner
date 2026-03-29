@@ -9,7 +9,7 @@ from qgis.core import (
     Qgis
 )
 from qgis.analysis import QgsZonalStatistics
-from PyQt5.QtCore import QMetaType, QVariant
+from qgis.PyQt.QtCore import QMetaType, QVariant
 import re
 
 def add_to_canvas(layers, group_name, counter=1):
@@ -61,8 +61,8 @@ def create_waypoints_layer(crs_vect):
                               "waypoints", "memory")
     pr = waypoints_layer.dataProvider()
     if Qgis.QGIS_VERSION_INT >= 33800:
-        t_int = QMetaType.Int
-        t_dbl = QMetaType.Double
+        t_int = QMetaType.Type.Int
+        t_dbl = QMetaType.Type.Double
     else:
         t_int = QVariant.Int
         t_dbl = QVariant.Double

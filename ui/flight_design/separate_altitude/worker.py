@@ -1,7 +1,7 @@
 import os
 from ....error_reporting import QgsPrint
 import numpy as np
-from PyQt5.QtCore import QObject, pyqtSignal
+from qgis.PyQt.QtCore import QObject, pyqtSignal
 from qgis.core import (
     QgsVectorLayer,
     QgsFeature,

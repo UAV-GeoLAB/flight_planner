@@ -1,5 +1,5 @@
 from qgis.core import QgsColorRampShader, QgsRasterShader, QgsSingleBandPseudoColorRenderer
-from PyQt5.QtGui import QColor
+from qgis.PyQt.QtGui import QColor
 
 def create_overlay_renderer(provider, max_value):
     color_ramp = QgsColorRampShader()

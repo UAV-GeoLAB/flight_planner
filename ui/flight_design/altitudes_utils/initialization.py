@@ -1,7 +1,7 @@
 from qgis.core import QgsCoordinateReferenceSystem, QgsProject, QgsRasterLayer
 from ....error_reporting import QgsMessBox
 from ...terrain_utils import is_poligon_inside_raster
-from PyQt5.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QApplication
 import processing
 
 def initialize_crs_and_progressbar(ui):

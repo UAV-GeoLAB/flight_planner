@@ -10,7 +10,7 @@ from math import (
 )
 import numpy as np
 from pyproj import Transformer
-from PyQt5.QtCore import QObject, pyqtSignal
+from qgis.PyQt.QtCore import QObject, pyqtSignal
 from qgis.core import (
     QgsFeature,
     QgsGeometry,
@@ -18,7 +18,7 @@ from qgis.core import (
     QgsCoordinateReferenceSystem
 )
 
-from PyQt5.QtWidgets import QApplication
+from qgis.PyQt.QtWidgets import QApplication
 
 from ....mathgeo_utils.coordinates import (
     crs2pixel,

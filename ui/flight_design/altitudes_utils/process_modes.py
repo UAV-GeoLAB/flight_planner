@@ -6,7 +6,7 @@ from ._annotation import annotate_segment_features
 from ....error_reporting import QgsPrint, QgsMessBox
 from qgis import processing
 from qgis.core import QgsField, QgsCoordinateReferenceSystem, Qgis
-from PyQt5.QtCore import QMetaType, QVariant
+from qgis.PyQt.QtCore import QMetaType, QVariant
 
 def process_block_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
     """Get projection centres and photos layer from AoI"""
@@ -102,7 +102,7 @@ def process_corridor_mode(ui, Bx, By, len_along, len_across, altitude_ASL):
         photo_lay.startEditing()
 
         if Qgis.QGIS_VERSION_INT >= 33800:
-            t_int = QMetaType.Int
+            t_int = QMetaType.Type.Int
         else:
             t_int = QVariant.Int
         pc_lay.addAttribute(QgsField("BuffNr", t_int))
