@@ -76,11 +76,123 @@
         "pixels_along_track": 11310,
         "pixels_across_track": 17310
     },
-    {
-        "name": "DJI Zenmuse P1",
-        "focal_length": 0.035,
-        "sensor_size": 4.4e-06,
-        "pixels_along_track": 5460,
-        "pixels_across_track": 8192
-    }
+	{
+		"name": "DJI Zenmuse P1 (35 mm)",
+		"focal_length": 0.035,
+		"sensor_size": 0.0000044,
+		"pixels_along_track": 5460,
+		"pixels_across_track": 8192
+	},
+	{
+		"name": "DJI Zenmuse P1 (24 mm)",
+		"focal_length": 0.024,
+		"sensor_size": 0.0000044,
+		"pixels_along_track": 5460,
+		"pixels_across_track": 8192
+	},
+	{
+		"name": "DJI Zenmuse P1 (50 mm)",
+		"focal_length": 0.050,
+		"sensor_size": 0.0000044,
+		"pixels_along_track": 5460,
+		"pixels_across_track": 8192
+	},
+	{
+		"name": "DJI Matrice 4TD (RGB data)",
+		"focal_length": 0.00672,
+		"sensor_size": 0.0000024037,
+		"pixels_along_track": 3024,
+		"pixels_across_track": 4032
+	},
+	{
+		"name": "DJI Matrice 4TD (Thermal data)",
+		"focal_length": 0.012,
+		"sensor_size": 0.00000609114,
+		"pixels_along_track": 1024,
+		"pixels_across_track": 1280
+	},
+	{
+		"name": "DJI Matrice 4E",
+		"focal_length": 0.01229,
+		"sensor_size": 0.00000335821,
+		"pixels_along_track": 3956,
+		"pixels_across_track": 5280
+	},
+	{
+		"name": "DJI Mavic 3 Enterprise",
+		"focal_length": 0.01229,
+		"sensor_size": 0.00000335821,
+		"pixels_along_track": 3956,
+		"pixels_across_track": 5280
+	},
+	{
+		"name": "DJI Mavic 3 Multispectral (MS data)",
+		"focal_length": 0.00434,
+		"sensor_size": 0.00000199848,
+		"pixels_along_track": 1944,
+		"pixels_across_track": 2592
+	},
+	{
+		"name": "DJI Mavic 3 Thermal (TIR data)",
+		"focal_length": 0.0091,
+		"sensor_size": 0.0000120097,
+		"pixels_along_track": 512,
+		"pixels_across_track": 640
+	},
+	{
+		"name": "Micasense Red-Edge series",
+		"focal_length": 0.0055,
+		"sensor_size": 0.00000375,
+		"pixels_along_track": 960,
+		"pixels_across_track": 1280
+	},
+	{
+		"name": "Micasense Altum (MS data)",
+		"focal_length": 0.008,
+		"sensor_size": 0.00000345,
+		"pixels_along_track": 1544,
+		"pixels_across_track": 2064
+	},
+	{
+		"name": "Micasense Altum (Panchro data)",
+		"focal_length": 0.0166,
+		"sensor_size": 0.00000345,
+		"pixels_along_track": 3008,
+		"pixels_across_track": 4112
+	},
+	{
+		"name": "Micasense Altum (Thermal data)",
+		"focal_length": 0.0045,
+		"sensor_size": 0.000012,
+		"pixels_along_track": 256,
+		"pixels_across_track": 320
+	},
+	{
+		"name": "DJI Phantom 4 RTK",
+		"focal_length": 0.0088,
+		"sensor_size": 0.00000241228,
+		"pixels_along_track": 3648,
+		"pixels_across_track": 5472
+	},
+	{
+		"name": "DJI Zenmuse L1 RGB camera",
+		"focal_length": 0.0088,
+		"sensor_size": 0.00000241228,
+		"pixels_along_track": 3648,
+		"pixels_across_track": 5472
+	},
+	{
+		"name": "DJI Zenmuse L2 RGB camera",
+		"focal_length": 0.01229,
+		"sensor_size": 0.00000335821,
+		"pixels_along_track": 3956,
+		"pixels_across_track": 5280
+	},
+	{
+		"name": "DJI Zenmuse XT2 (Thermal data)",
+		"focal_length": 0.009,
+		"sensor_size": 0.00017507,
+		"pixels_along_track": 336,
+		"pixels_across_track": 256
+	}
 ]
